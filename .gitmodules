@@ -1,0 +1,3 @@
+[submodule "litehtml"]
+	path = litehtml
+	url = https://github.com/tordex/litehtml.git
