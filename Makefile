@@ -50,6 +50,7 @@ $(LITEHTMLSRC)/el_before_after.cpp \
 $(LITEHTMLSRC)/el_para.cpp \
 $(LITEHTMLSRC)/html.cpp \
 $(LITEHTMLSRC)/xh_scanner.cpp \
+$(LITEHTMLSRC)/instream.cpp \
 $(CONTAINIERSRC)/container_linux.cpp
 
 OBJS = $(subst .cpp,.o,$(SRCS))
