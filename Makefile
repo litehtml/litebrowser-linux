@@ -5,9 +5,9 @@ RM=rm -f
 LITEHTMLSRC = litehtml/src
 CONTAINIERSRC = litehtml/containers/linux
 
-CPPFLAGS=-g $(shell pkg-config gdkmm-3.0 gtkmm-3.0 liburiparser libcurl --cflags)
+CPPFLAGS=-g -O2 -Wall $(shell pkg-config gdkmm-3.0 gtkmm-3.0 liburiparser libcurl --cflags)
 LDFLAGS=-g
-LDLIBS=$(shell pkg-config gdkmm-3.0 gtkmm-3.0 liburiparser libcurl --libs)
+LDLIBS=$(shell pkg-config gdkmm-3.0 gtkmm-3.0 liburiparser libcurl --libs) -lfontconfig
 
 SRCS = \
 src/broser_wnd.cpp \

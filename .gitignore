@@ -19,6 +19,12 @@
 *.exe
 *.out
 *.app
+/litebrowser
 
 .depend
 *~
+
+# Eclipse files
+.cproject
+.settings
+.project
