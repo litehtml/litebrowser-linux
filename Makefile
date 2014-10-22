@@ -41,10 +41,10 @@ $(LITEHTMLSRC)/table.cpp \
 $(LITEHTMLSRC)/el_anchor.cpp \
 $(LITEHTMLSRC)/el_image.cpp \
 $(LITEHTMLSRC)/el_title.cpp \
-$(LITEHTMLSRC)/tokenizer.cpp \
 $(LITEHTMLSRC)/el_base.cpp \
 $(LITEHTMLSRC)/el_link.cpp \
 $(LITEHTMLSRC)/el_tr.cpp \
+$(LITEHTMLSRC)/el_cdata.cpp \
 $(LITEHTMLSRC)/web_color.cpp \
 $(LITEHTMLSRC)/el_before_after.cpp \
 $(LITEHTMLSRC)/el_para.cpp \
