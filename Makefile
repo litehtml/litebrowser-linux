@@ -1,5 +1,5 @@
-CC=gcc
-CXX=g++
+CC=gcc -std=c99
+CXX=g++ -std=c++11
 RM=rm -f
 
 LITEHTMLSRC = litehtml/src
@@ -9,7 +9,7 @@ CPPFLAGS=-g -O2 -Wall $(shell pkg-config gdkmm-3.0 gtkmm-3.0 liburiparser libcur
 LDFLAGS=-g
 LDLIBS=$(shell pkg-config gdkmm-3.0 gtkmm-3.0 liburiparser libcurl --libs) -lfontconfig
 
-SRCS = \
+LITEHTML_SOURCES = \
 src/broser_wnd.cpp \
 src/html_widget.cpp \
 src/main.cpp \
@@ -49,26 +49,41 @@ $(LITEHTMLSRC)/web_color.cpp \
 $(LITEHTMLSRC)/el_before_after.cpp \
 $(LITEHTMLSRC)/el_para.cpp \
 $(LITEHTMLSRC)/html.cpp \
-$(LITEHTMLSRC)/xh_scanner.cpp \
-$(LITEHTMLSRC)/instream.cpp \
+$(LITEHTMLSRC)/utf8_strings.cpp \
 $(CONTAINIERSRC)/container_linux.cpp
 
-OBJS = $(subst .cpp,.o,$(SRCS))
-OBJS += master.css.o
+
+GUMBO_SOURCES = \
+$(LITEHTMLSRC)/gumbo/attribute.c \
+$(LITEHTMLSRC)/gumbo/char_ref.c \
+$(LITEHTMLSRC)/gumbo/error.c \
+$(LITEHTMLSRC)/gumbo/parser.c \
+$(LITEHTMLSRC)/gumbo/string_buffer.c \
+$(LITEHTMLSRC)/gumbo/string_piece.c \
+$(LITEHTMLSRC)/gumbo/tag.c \
+$(LITEHTMLSRC)/gumbo/tokenizer.c \
+$(LITEHTMLSRC)/gumbo/utf8.c \
+$(LITEHTMLSRC)/gumbo/util.c \
+$(LITEHTMLSRC)/gumbo/vector.c \
+
+LITEHTML_OBJS = $(subst .cpp,.o,$(LITEHTML_SOURCES))
+GUMBO_OBJS = $(subst .c,.o,$(GUMBO_SOURCES))
+LITEHTML_OBJS += master.css.o
 
 all: litebrowser
 
-litebrowser: $(OBJS)
-	g++ $(LDFLAGS) -o litebrowser $(OBJS) $(LDLIBS) 
+litebrowser: $(LITEHTML_OBJS) $(GUMBO_OBJS)
+	g++ $(LDFLAGS) -o litebrowser $(LITEHTML_OBJS) $(GUMBO_OBJS) $(LDLIBS) 
 
 depend: .depend
 
-.depend: $(SRCS)
+.depend: $(LITEHTML_SOURCES) $(GUMBO_SOURCES)
 	rm -f ./.depend
-	$(CXX) $(CPPFLAGS) -MM $^>>./.depend;
+	$(CXX) $(CPPFLAGS) -MM $(LITEHTML_SOURCES)>>./.depend;
+	$(CC) $(CPPFLAGS) -MM $(GUMBO_SOURCES)>>./.depend;
 
 clean:
-	$(RM) $(OBJS)
+	$(RM) $(LITEHTML_OBJS) $(GUMBO_OBJS)
 
 dist-clean: clean
 	$(RM) *~ .dependtool
