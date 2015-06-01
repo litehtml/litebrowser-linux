@@ -3,6 +3,7 @@
 *.lo
 *.o
 *.obj
+src/master.css.inc
 
 # Compiled Dynamic libraries
 *.so
@@ -28,3 +29,5 @@
 .cproject
 .settings
 .project
+.idea
+
