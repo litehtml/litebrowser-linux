@@ -23,8 +23,6 @@
 #include <gdk/gdk.h>
 #include <cairomm/context.h>
 #include <curl/curl.h>
-#include <Uri.h>
+#include <Poco/URI.h>
 
-extern Glib::RefPtr< Gio::InputStream > load_file(const litehtml::tstring& url);
 extern std::string urljoin(const std::string &base, const std::string &relative);
-extern void load_text_file(const litehtml::tstring& url, litehtml::tstring& out);

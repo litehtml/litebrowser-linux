@@ -2,7 +2,7 @@
 #include "browser_wnd.h"
 #include <gdk/gdkkeysyms.h>
 
-browser_window::browser_window(litehtml::context* html_context) : m_html(html_context), m_go_button("_Go", true)
+browser_window::browser_window(litehtml::context* html_context) : m_html(html_context, this), m_go_button("_Go", true)
 {
 	set_title("litehtml");
 
@@ -53,4 +53,15 @@ bool browser_window::on_address_key_press(GdkEventKey* event)
 	}
 
 	return false;
+}
+
+void browser_window::open_url(const litehtml::tstring &url)
+{
+	m_address_bar.set_text(url);
+	m_html.open_page(url);
+}
+
+void browser_window::set_url(const litehtml::tstring &url)
+{
+	m_address_bar.set_text(url);
 }

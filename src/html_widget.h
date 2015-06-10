@@ -1,16 +1,10 @@
-/*
- * html_widget.h
- *
- *  Created on: Aug 1, 2013
- *      Author: tordex
- */
-
-#ifndef HTML_WIDGET_H_
-#define HTML_WIDGET_H_
+#pragma once
 
 #include <gtkmm/drawingarea.h>
 #include "../litehtml/containers/linux/container_linux.h"
+#include "http_loader.h"
 
+class browser_window;
 
 class html_widget :		public Gtk::DrawingArea,
 						public container_linux
@@ -20,11 +14,16 @@ class html_widget :		public Gtk::DrawingArea,
 	litehtml::document::ptr		m_html;
 	litehtml::context*			m_html_context;
 	int							m_rendered_width;
+	litehtml::tstring			m_cursor;
+	litehtml::tstring			m_clicked_url;
+	browser_window*				m_browser;
+	http_loader					m_http;
 public:
-	html_widget(litehtml::context* html_context);
+	html_widget(litehtml::context* html_context, browser_window* browser);
 	virtual ~html_widget();
 
 	void open_page(const litehtml::tstring& url);
+	void update_cursor();
 
 protected:
 	virtual bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
@@ -43,7 +42,10 @@ protected:
     virtual void get_preferred_height_vfunc(int& minimum_height, int& natural_height) const;
 
     virtual void on_size_allocate(Gtk::Allocation& allocation);
+	virtual bool on_button_press_event(GdkEventButton* event);
+	virtual bool on_button_release_event(GdkEventButton* event);
+	virtual bool on_motion_notify_event(GdkEventMotion* event);
+
+private:
+	void load_text_file(const litehtml::tstring& url, litehtml::tstring& out);
 };
-
-
-#endif /* HTML_WIDGET_H_ */

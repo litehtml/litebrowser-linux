@@ -8,6 +8,9 @@ public:
 	browser_window(litehtml::context* html_context);
 	virtual ~browser_window();
 
+	void open_url(const litehtml::tstring& url);
+	void set_url(const litehtml::tstring& url);
+
 private:
     void on_go_clicked();
     bool on_address_key_press(GdkEventKey* event);
