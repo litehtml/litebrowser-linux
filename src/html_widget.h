@@ -28,7 +28,7 @@ public:
 protected:
 	virtual bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
 
-	virtual void get_client_rect(litehtml::position& client);
+	virtual void get_client_rect(litehtml::position& client) const;
 	virtual	 void on_anchor_click(const litehtml::tchar_t* url, litehtml::element::ptr el);
 	virtual	 void set_cursor(const litehtml::tchar_t* cursor);
 	virtual void import_css(litehtml::tstring& text, const litehtml::tstring& url, litehtml::tstring& baseurl);

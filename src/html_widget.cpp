@@ -41,7 +41,7 @@ bool html_widget::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 	return true;
 }
 
-void html_widget::get_client_rect(litehtml::position& client)
+void html_widget::get_client_rect(litehtml::position& client) const
 {
 	Gtk::Allocation allocation = get_allocation();
 	client.width = allocation.get_width();
