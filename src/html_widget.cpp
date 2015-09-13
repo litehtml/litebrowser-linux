@@ -51,7 +51,7 @@ void html_widget::get_client_rect(litehtml::position& client) const
 }
 
 
-void html_widget::on_anchor_click(const litehtml::tchar_t* url, litehtml::element::ptr el)
+void html_widget::on_anchor_click(const litehtml::tchar_t* url, const litehtml::element::ptr& el)
 {
     if(url)
     {
@@ -99,10 +99,6 @@ void html_widget::set_base_url(const litehtml::tchar_t* base_url)
 	{
 		m_base_url = m_url;
 	}
-}
-
-void html_widget::link(litehtml::document* doc, litehtml::element::ptr el)
-{
 }
 
 Glib::RefPtr<Gdk::Pixbuf> html_widget::get_image(const litehtml::tchar_t* url, bool redraw_on_ready)
