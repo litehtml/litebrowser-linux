@@ -6,6 +6,15 @@
 
 class browser_window;
 
+class html_scrollable: public Gtk::ScrolledWindow
+{
+public:
+    html_scrollable();
+    virtual ~html_scrollable();
+
+    virtual void on_check_resize();
+};
+
 class html_widget :		public Gtk::DrawingArea,
 						public container_linux
 {

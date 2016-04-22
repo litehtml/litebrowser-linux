@@ -2,6 +2,20 @@
 #include "html_widget.h"
 #include "browser_wnd.h"
 
+html_scrollable::html_scrollable()
+{
+
+}
+
+html_scrollable::~html_scrollable()
+{
+
+}
+
+void html_scrollable::on_check_resize()
+{
+    Gtk::ScrolledWindow::on_check_resize();
+}
 
 html_widget::html_widget(litehtml::context* html_context, browser_window* browser)
 {
@@ -43,9 +57,8 @@ bool html_widget::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
 void html_widget::get_client_rect(litehtml::position& client) const
 {
-	Gtk::Allocation allocation = get_allocation();
-	client.width = allocation.get_width();
-	client.height = allocation.get_height();
+	client.width = get_parent()->get_width();
+	client.height = get_parent()->get_height();
 	client.x = 0;
 	client.y = 0;
 }
@@ -121,9 +134,10 @@ void html_widget::open_page(const litehtml::tstring& url)
 	m_html = litehtml::document::createFromString(html.c_str(), this, m_html_context);
 	if(m_html)
 	{
-		m_rendered_width = get_allocation().get_width();
+		m_rendered_width = get_parent()->get_width();
 		m_html->render(m_rendered_width);
 		set_size_request(m_html->width(), m_html->height());
+        queue_resize();
 	}
 
     Glib::RefPtr<Gdk::Window> win = get_window();
