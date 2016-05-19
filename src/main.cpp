@@ -7,9 +7,6 @@ char master_css[] =
 ,0
 };
 
-extern "C" char _binary_litehtml_include_master_css_start;
-extern "C" char _binary_litehtml_include_master_css_end;
-
 int main (int argc, char *argv[])
 {
 	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(argc, argv, "litehtml.browser");

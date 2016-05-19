@@ -24,6 +24,7 @@ public:
 
 	void open_page(const litehtml::tstring& url);
 	void update_cursor();
+	void on_parent_size_allocate(Gtk::Allocation allocation);
 
 protected:
 	virtual bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
@@ -37,14 +38,13 @@ protected:
 	virtual Glib::RefPtr<Gdk::Pixbuf>	get_image(const litehtml::tchar_t* url, bool redraw_on_ready);
 	virtual void						make_url( const litehtml::tchar_t* url, const litehtml::tchar_t* basepath, litehtml::tstring& out );
 
-    virtual void get_preferred_width_vfunc(int& minimum_width, int& natural_width) const;
-    virtual void get_preferred_height_vfunc(int& minimum_height, int& natural_height) const;
-
-    virtual void on_size_allocate(Gtk::Allocation& allocation);
 	virtual bool on_button_press_event(GdkEventButton* event);
 	virtual bool on_button_release_event(GdkEventButton* event);
 	virtual bool on_motion_notify_event(GdkEventMotion* event);
 
+	virtual void on_parent_changed(Gtk::Widget* previous_parent);
+
 private:
 	void load_text_file(const litehtml::tstring& url, litehtml::tstring& out);
+	Gtk::Allocation get_parent_allocation();
 };

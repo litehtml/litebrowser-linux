@@ -25,11 +25,12 @@ browser_window::browser_window(litehtml::context* html_context) : m_html(html_co
 	m_go_button.show();
 
 	m_vbox.pack_start(m_scrolled_wnd, Gtk::PACK_EXPAND_WIDGET);
-	m_scrolled_wnd.set_size_request(800, 600);
 	m_scrolled_wnd.show();
 
 	m_scrolled_wnd.add(m_html);
 	m_html.show();
+
+    set_default_size(800, 600);
 }
 
 browser_window::~browser_window()

@@ -2,7 +2,6 @@
 #include "html_widget.h"
 #include "browser_wnd.h"
 
-
 html_widget::html_widget(litehtml::context* html_context, browser_window* browser)
 {
     m_browser           = browser;
@@ -43,9 +42,8 @@ bool html_widget::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
 void html_widget::get_client_rect(litehtml::position& client) const
 {
-	Gtk::Allocation allocation = get_allocation();
-	client.width = allocation.get_width();
-	client.height = allocation.get_height();
+	client.width = get_parent()->get_allocated_width();
+	client.height = get_parent()->get_allocated_height();
 	client.x = 0;
 	client.y = 0;
 }
@@ -108,6 +106,12 @@ Glib::RefPtr<Gdk::Pixbuf> html_widget::get_image(const litehtml::tchar_t* url, b
 	return ptr;
 }
 
+Gtk::Allocation html_widget::get_parent_allocation()
+{
+    Gtk::Container* parent = get_parent();
+    return parent->get_allocation();
+}
+
 void html_widget::open_page(const litehtml::tstring& url)
 {
 	m_url 		= url;
@@ -121,17 +125,12 @@ void html_widget::open_page(const litehtml::tstring& url)
 	m_html = litehtml::document::createFromString(html.c_str(), this, m_html_context);
 	if(m_html)
 	{
-		m_rendered_width = get_allocation().get_width();
+		m_rendered_width = get_parent_allocation().get_width();
 		m_html->render(m_rendered_width);
 		set_size_request(m_html->width(), m_html->height());
 	}
 
-    Glib::RefPtr<Gdk::Window> win = get_window();
-    if(win)
-    {
-        win->invalidate(false);
-    }
-
+    queue_draw();
 }
 
 void html_widget::make_url(const litehtml::tchar_t* url, const litehtml::tchar_t* basepath, litehtml::tstring& out)
@@ -151,38 +150,26 @@ void html_widget::make_url(const litehtml::tchar_t* url, const litehtml::tchar_t
 	}
 }
 
-void html_widget::get_preferred_width_vfunc(int& minimum_width, int& natural_width) const
+void html_widget::on_parent_size_allocate(Gtk::Allocation allocation)
 {
-	minimum_width = 0;
-	if(m_html)
-	{
-		natural_width = m_html->width();
-	} else
-	{
-		natural_width = 0;
-	}
+    if(m_html && m_rendered_width != allocation.get_width())
+    {
+        m_rendered_width = allocation.get_width();
+        m_html->media_changed();
+        m_html->render(m_rendered_width);
+        set_size_request(m_html->width(), m_html->height());
+        queue_draw();
+    }
 }
 
-void html_widget::get_preferred_height_vfunc(int& minimum_height, int& natural_height) const
+void html_widget::on_parent_changed(Gtk::Widget* previous_parent)
 {
-	minimum_height = 0;
-	if(m_html)
-	{
-		natural_height = m_html->height();
-	} else
-	{
-		natural_height = 0;
-	}
-}
+    Gtk::Widget* viewport = get_parent();
+    if(viewport)
+    {
+        viewport->signal_size_allocate().connect(sigc::mem_fun(*this, &html_widget::on_parent_size_allocate));
+    }
 
-void html_widget::on_size_allocate(Gtk::Allocation& allocation)
-{
-	Gtk::DrawingArea::on_size_allocate(allocation);
-	if(m_html && m_rendered_width != allocation.get_width())
-	{
-		m_rendered_width = allocation.get_width();
-		m_html->render(m_rendered_width);
-	}
 }
 
 bool html_widget::on_button_press_event(GdkEventButton *event)
@@ -190,7 +177,7 @@ bool html_widget::on_button_press_event(GdkEventButton *event)
     if(m_html)
     {
         litehtml::position::vector redraw_boxes;
-        if(m_html->on_lbutton_down(event->x, event->y, event->x, event->y, redraw_boxes))
+        if(m_html->on_lbutton_down((int) event->x, (int) event->y, (int) event->x, (int) event->y, redraw_boxes))
         {
             for(auto& pos : redraw_boxes)
             {
@@ -207,7 +194,7 @@ bool html_widget::on_button_release_event(GdkEventButton *event)
     {
         litehtml::position::vector redraw_boxes;
 		m_clicked_url.clear();
-        if(m_html->on_lbutton_up(event->x, event->y, event->x, event->y, redraw_boxes))
+        if(m_html->on_lbutton_up((int) event->x, (int) event->y, (int) event->x, (int) event->y, redraw_boxes))
         {
             for(auto& pos : redraw_boxes)
             {
@@ -227,7 +214,7 @@ bool html_widget::on_motion_notify_event(GdkEventMotion *event)
     if(m_html)
     {
         litehtml::position::vector redraw_boxes;
-        if(m_html->on_mouse_over(event->x, event->y, event->x, event->y, redraw_boxes))
+        if(m_html->on_mouse_over((int) event->x, (int) event->y, (int) event->x, (int) event->y, redraw_boxes))
         {
             for(auto& pos : redraw_boxes)
             {
@@ -258,7 +245,7 @@ void html_widget::load_text_file(const litehtml::tstring& url, litehtml::tstring
 {
     out.clear();
     Glib::RefPtr< Gio::InputStream > stream = m_http.load_file(url);
-    gsize sz;
+    gssize sz;
     char buff[1025];
     while( (sz = stream->read(buff, 1024)) > 0 )
     {
