@@ -21,6 +21,6 @@ protected:
 	Gtk::Button			m_go_button;
 	Gtk::VBox			m_vbox;
 	Gtk::HBox			m_hbox;
-	html_scrollable	    m_scrolled_wnd;
+	Gtk::ScrolledWindow m_scrolled_wnd;
 };
 

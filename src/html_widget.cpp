@@ -2,21 +2,6 @@
 #include "html_widget.h"
 #include "browser_wnd.h"
 
-html_scrollable::html_scrollable()
-{
-
-}
-
-html_scrollable::~html_scrollable()
-{
-
-}
-
-void html_scrollable::on_check_resize()
-{
-    Gtk::ScrolledWindow::on_check_resize();
-}
-
 html_widget::html_widget(litehtml::context* html_context, browser_window* browser)
 {
     m_browser           = browser;
@@ -121,6 +106,12 @@ Glib::RefPtr<Gdk::Pixbuf> html_widget::get_image(const litehtml::tchar_t* url, b
 	return ptr;
 }
 
+Gtk::Allocation html_widget::get_parent_allocation()
+{
+    Gtk::Container* parent = get_parent();
+    return parent->get_allocation();
+}
+
 void html_widget::open_page(const litehtml::tstring& url)
 {
 	m_url 		= url;
@@ -134,18 +125,12 @@ void html_widget::open_page(const litehtml::tstring& url)
 	m_html = litehtml::document::createFromString(html.c_str(), this, m_html_context);
 	if(m_html)
 	{
-		m_rendered_width = get_parent()->get_width();
+		m_rendered_width = get_parent_allocation().get_width();
 		m_html->render(m_rendered_width);
 		set_size_request(m_html->width(), m_html->height());
-        queue_resize();
 	}
 
-    Glib::RefPtr<Gdk::Window> win = get_window();
-    if(win)
-    {
-        win->invalidate(false);
-    }
-
+    queue_draw();
 }
 
 void html_widget::make_url(const litehtml::tchar_t* url, const litehtml::tchar_t* basepath, litehtml::tstring& out)
@@ -165,38 +150,25 @@ void html_widget::make_url(const litehtml::tchar_t* url, const litehtml::tchar_t
 	}
 }
 
-void html_widget::get_preferred_width_vfunc(int& minimum_width, int& natural_width) const
+void html_widget::on_parent_size_allocate(Gtk::Allocation allocation)
 {
-	minimum_width = 0;
-	if(m_html)
-	{
-		natural_width = m_html->width();
-	} else
-	{
-		natural_width = 0;
-	}
+    if(m_html && m_rendered_width != allocation.get_width())
+    {
+        m_rendered_width = allocation.get_width();
+        m_html->render(m_rendered_width);
+        set_size_request(m_html->width(), m_html->height());
+        queue_draw();
+    }
 }
 
-void html_widget::get_preferred_height_vfunc(int& minimum_height, int& natural_height) const
+void html_widget::on_parent_changed(Gtk::Widget* previous_parent)
 {
-	minimum_height = 0;
-	if(m_html)
-	{
-		natural_height = m_html->height();
-	} else
-	{
-		natural_height = 0;
-	}
-}
+    Gtk::Widget* viewport = get_parent();
+    if(viewport)
+    {
+        viewport->signal_size_allocate().connect(sigc::mem_fun(*this, &html_widget::on_parent_size_allocate));
+    }
 
-void html_widget::on_size_allocate(Gtk::Allocation& allocation)
-{
-	Gtk::DrawingArea::on_size_allocate(allocation);
-	if(m_html && m_rendered_width != allocation.get_width())
-	{
-		m_rendered_width = allocation.get_width();
-		m_html->render(m_rendered_width);
-	}
 }
 
 bool html_widget::on_button_press_event(GdkEventButton *event)
