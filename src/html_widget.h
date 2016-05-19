@@ -7,8 +7,7 @@
 class browser_window;
 
 class html_widget :		public Gtk::DrawingArea,
-						public container_linux,
-                        public Gtk::Scrollable
+						public container_linux
 {
 	litehtml::tstring			m_url;
 	litehtml::tstring			m_base_url;

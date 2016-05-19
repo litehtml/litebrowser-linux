@@ -42,8 +42,8 @@ bool html_widget::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
 void html_widget::get_client_rect(litehtml::position& client) const
 {
-	client.width = get_parent()->get_width();
-	client.height = get_parent()->get_height();
+	client.width = get_parent()->get_allocated_width();
+	client.height = get_parent()->get_allocated_height();
 	client.x = 0;
 	client.y = 0;
 }
@@ -155,6 +155,7 @@ void html_widget::on_parent_size_allocate(Gtk::Allocation allocation)
     if(m_html && m_rendered_width != allocation.get_width())
     {
         m_rendered_width = allocation.get_width();
+        m_html->media_changed();
         m_html->render(m_rendered_width);
         set_size_request(m_html->width(), m_html->height());
         queue_draw();
@@ -176,7 +177,7 @@ bool html_widget::on_button_press_event(GdkEventButton *event)
     if(m_html)
     {
         litehtml::position::vector redraw_boxes;
-        if(m_html->on_lbutton_down(event->x, event->y, event->x, event->y, redraw_boxes))
+        if(m_html->on_lbutton_down((int) event->x, (int) event->y, (int) event->x, (int) event->y, redraw_boxes))
         {
             for(auto& pos : redraw_boxes)
             {
@@ -193,7 +194,7 @@ bool html_widget::on_button_release_event(GdkEventButton *event)
     {
         litehtml::position::vector redraw_boxes;
 		m_clicked_url.clear();
-        if(m_html->on_lbutton_up(event->x, event->y, event->x, event->y, redraw_boxes))
+        if(m_html->on_lbutton_up((int) event->x, (int) event->y, (int) event->x, (int) event->y, redraw_boxes))
         {
             for(auto& pos : redraw_boxes)
             {
@@ -213,7 +214,7 @@ bool html_widget::on_motion_notify_event(GdkEventMotion *event)
     if(m_html)
     {
         litehtml::position::vector redraw_boxes;
-        if(m_html->on_mouse_over(event->x, event->y, event->x, event->y, redraw_boxes))
+        if(m_html->on_mouse_over((int) event->x, (int) event->y, (int) event->x, (int) event->y, redraw_boxes))
         {
             for(auto& pos : redraw_boxes)
             {
@@ -244,7 +245,7 @@ void html_widget::load_text_file(const litehtml::tstring& url, litehtml::tstring
 {
     out.clear();
     Glib::RefPtr< Gio::InputStream > stream = m_http.load_file(url);
-    gsize sz;
+    gssize sz;
     char buff[1025];
     while( (sz = stream->read(buff, 1024)) > 0 )
     {
