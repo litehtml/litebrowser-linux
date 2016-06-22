@@ -4,6 +4,11 @@ include(FindPkgConfig)
 
 project(litebrowser)
 
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    message(STATUS "No build type selected, default to Release")
+    set(CMAKE_BUILD_TYPE "Release")
+endif()
+
 set(CMAKE_CXX_FLAGS_DEBUG "-std=c++11 -O0 -DDEBUG -g")
 set(CMAKE_C_FLAGS_DEBUG "-std=c++11 -O0 -DDEBUG -g")
 set(CMAKE_CXX_FLAGS_RELEASE "-std=c++11 -O3")
