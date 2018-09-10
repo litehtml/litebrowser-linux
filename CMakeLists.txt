@@ -2,17 +2,17 @@ cmake_minimum_required(VERSION 2.8)
 
 include(FindPkgConfig)
 
-project(litebrowser)
+project(litebrowser CXX)
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "No build type selected, default to Release")
     set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-set(CMAKE_CXX_FLAGS_DEBUG "-std=c++11 -O0 -DDEBUG -g")
-set(CMAKE_C_FLAGS_DEBUG "-std=c++11 -O0 -DDEBUG -g")
-set(CMAKE_CXX_FLAGS_RELEASE "-std=c++11 -O3")
-set(CMAKE_C_FLAGS_RELEASE "-std=c++11 -O3")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -DDEBUG -g")
+set(CMAKE_C_FLAGS_DEBUG "-O0 -DDEBUG -g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_C_FLAGS_RELEASE "-O3")
 
 set(LITEBROWSER_PATH src)
 set(LITEHTML_PATH litehtml)
@@ -37,6 +37,11 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc PROPERTIES GENERATED TRUE)
 
 add_executable(litebrowser ${SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc src/http_loader.h src/http_loader.cpp)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+        CXX_STANDARD 11
+        C_STANDARD 99
+        )
 
 target_link_libraries(litebrowser litehtml ${LB_LIBS_LIBRARIES} PocoFoundation)
 
