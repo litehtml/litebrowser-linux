@@ -7,7 +7,11 @@
 #include <vector>
 #include <iostream>
 #include <stdlib.h>
+#ifdef __APPLE__
+#include <stdlib.h>
+#else
 #include <malloc.h>
+#endif
 #include <memory.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
