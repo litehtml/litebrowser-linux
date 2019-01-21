@@ -20,7 +20,6 @@ set(CONTAINER_PATH ${LITEHTML_PATH}/containers/linux)
 
 pkg_check_modules(LB_LIBS REQUIRED fontconfig gdkmm-3.0 gtkmm-3.0 libcurl cairo)
 find_package(Poco REQUIRED Foundation)
-pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
 
 include_directories(${Poco_INCLUDE_DIRS})
 
