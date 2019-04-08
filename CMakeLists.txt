@@ -20,11 +20,19 @@ set(CONTAINER_PATH ${LITEHTML_PATH}/containers/linux)
 
 pkg_check_modules(LB_LIBS REQUIRED fontconfig gdkmm-3.0 gtkmm-3.0 libcurl cairo)
 
+find_package(Poco REQUIRED Foundation)
+
 set(SOURCE  ${LITEBROWSER_PATH}/main.cpp
             ${LITEBROWSER_PATH}/utils.cpp
             ${LITEBROWSER_PATH}/html_widget.cpp
             ${CONTAINER_PATH}/container_linux.cpp
             ${LITEBROWSER_PATH}/broser_wnd.cpp
+    )
+
+set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
+            ${LITEBROWSER_PATH}/html_widget.h
+            ${LITEBROWSER_PATH}/globals.h
+            ${CONTAINER_PATH}/container_linux.h
     )
 
 include_directories(${LITEHTML_PATH}/include ${LB_LIBS_INCLUDE_DIRS})
@@ -36,12 +44,12 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc
                    COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/${LITEHTML_PATH}/include/master.css | xxd -i > ${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc)
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc PROPERTIES GENERATED TRUE)
 
-add_executable(litebrowser ${SOURCE} ${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc src/http_loader.h src/http_loader.cpp)
+add_executable(litebrowser ${SOURCE} ${HEADERS} ${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc src/http_loader.h src/http_loader.cpp)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
         CXX_STANDARD 11
         C_STANDARD 99
         )
 
-target_link_libraries(litebrowser litehtml ${LB_LIBS_LIBRARIES} PocoFoundation)
+target_link_libraries(litebrowser litehtml ${LB_LIBS_LIBRARIES} Poco::Foundation)
 
