@@ -26,7 +26,7 @@ set(SOURCE  ${LITEBROWSER_PATH}/main.cpp
             ${LITEBROWSER_PATH}/utils.cpp
             ${LITEBROWSER_PATH}/html_widget.cpp
             ${CONTAINER_PATH}/container_linux.cpp
-            ${LITEBROWSER_PATH}/broser_wnd.cpp
+            ${LITEBROWSER_PATH}/browser_wnd.cpp
     )
 
 set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
