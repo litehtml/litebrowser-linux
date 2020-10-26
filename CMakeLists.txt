@@ -46,10 +46,11 @@ set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc PROPE
 
 add_executable(litebrowser ${SOURCE} ${HEADERS} ${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc src/http_loader.h src/http_loader.cpp)
 
+target_link_options(litebrowser PRIVATE ${LB_LIBS_LDFLAGS})
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
         CXX_STANDARD 11
         C_STANDARD 99
         )
 
 target_link_libraries(litebrowser litehtml ${LB_LIBS_LIBRARIES} Poco::Foundation)
-
