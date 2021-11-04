@@ -6,19 +6,17 @@ A simple browser based on the [litehtml](https://github.com/litehtml/litehtml) e
 
 Install dependencies:
 
- * [POCO C++ Libraries](https://pocoproject.org/)  
  * vim-core for xxd
 
 ## Pre-requisites on Mac
 
 Install dependencies using [Homebrew](https://brew.sh/):
 
- * [poco](https://formulae.brew.sh/formula/poco)
  * [gtkmm3](https://formulae.brew.sh/formula/gtkmm3)
  * [gtk+3](https://formulae.brew.sh/formula/gtk+3)
 
 ```
-brew install gtkmm3 gtk+3 poco
+brew install gtkmm3 gtk+3
 ```
 
 ## Common Build instructions
