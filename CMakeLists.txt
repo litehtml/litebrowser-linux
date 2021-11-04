@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 2.8)
-
-include(FindPkgConfig)
+cmake_minimum_required(VERSION 3.11)
 
 project(litebrowser CXX)
+
+find_package(PkgConfig REQUIRED)
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "No build type selected, default to Release")
@@ -20,10 +20,7 @@ set(CONTAINER_PATH ${LITEHTML_PATH}/containers/linux)
 
 pkg_check_modules(LB_LIBS REQUIRED fontconfig gdkmm-3.0 gtkmm-3.0 libcurl cairo)
 
-find_package(Poco REQUIRED Foundation)
-
 set(SOURCE  ${LITEBROWSER_PATH}/main.cpp
-            ${LITEBROWSER_PATH}/utils.cpp
             ${LITEBROWSER_PATH}/html_widget.cpp
             ${CONTAINER_PATH}/container_linux.cpp
             ${LITEBROWSER_PATH}/browser_wnd.cpp
@@ -35,8 +32,6 @@ set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
             ${CONTAINER_PATH}/container_linux.h
     )
 
-include_directories(${LITEHTML_PATH}/include ${LB_LIBS_INCLUDE_DIRS})
-
 add_subdirectory(${LITEHTML_PATH})
 
 find_program(XXD_COMMAND xxd)
@@ -44,13 +39,13 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc
                    COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/${LITEHTML_PATH}/include/master.css | xxd -i > ${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc)
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc PROPERTIES GENERATED TRUE)
 
-add_executable(litebrowser ${SOURCE} ${HEADERS} ${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc src/http_loader.h src/http_loader.cpp)
-
-target_link_options(litebrowser PRIVATE ${LB_LIBS_LDFLAGS})
+add_executable(${PROJECT_NAME} ${SOURCE} ${HEADERS} ${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc src/http_loader.h src/http_loader.cpp)
+include_directories(${PROJECT_NAME} ${LITEHTML_PATH}/include ${LB_LIBS_INCLUDE_DIRS})
+target_link_options(${PROJECT_NAME} PRIVATE ${LB_LIBS_LDFLAGS})
+target_link_libraries(${PROJECT_NAME} litehtml ${LB_LIBS_LIBRARIES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
         CXX_STANDARD 11
         C_STANDARD 99
         )
 
-target_link_libraries(litebrowser litehtml ${LB_LIBS_LIBRARIES} Poco::Foundation)

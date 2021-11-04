@@ -1,6 +1,8 @@
 #include "globals.h"
 #include "html_widget.h"
 #include "browser_wnd.h"
+#include <litehtml/url_path.h>
+#include <litehtml/url.h>
 
 html_widget::html_widget(litehtml::context* html_context, browser_window* browser)
 {
@@ -92,7 +94,7 @@ void html_widget::set_base_url(const litehtml::tchar_t* base_url)
 {
 	if(base_url)
 	{
-		m_base_url = urljoin(m_url, std::string(base_url));
+		m_base_url = litehtml::resolve(litehtml::url(m_url), litehtml::url(base_url)).string();
 	} else
 	{
 		m_base_url = m_url;
@@ -135,18 +137,18 @@ void html_widget::open_page(const litehtml::tstring& url)
 
 void html_widget::make_url(const litehtml::tchar_t* url, const litehtml::tchar_t* basepath, litehtml::tstring& out)
 {
-	if(!basepath || (basepath && !basepath[0]))
+	if(!basepath || !basepath[0])
 	{
 		if(!m_base_url.empty())
 		{
-			out = urljoin(m_base_url, std::string(url));
+			out = litehtml::resolve(litehtml::url(m_base_url), litehtml::url(url)).string();
 		} else
 		{
 			out = url;
 		}
 	} else
 	{
-		out = urljoin(std::string(basepath), std::string(url));
+		out = litehtml::resolve(litehtml::url(basepath), litehtml::url(url)).string();
 	}
 }
 

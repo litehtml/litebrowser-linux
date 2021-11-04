@@ -6,7 +6,7 @@
 #include <clocale>
 #include <vector>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 #ifdef __APPLE__
 #include <stdlib.h>
 #else
@@ -14,7 +14,7 @@
 #endif
 #include <memory.h>
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 #include <cairo.h>
 #include <gtkmm.h>
 #include <gtkmm/application.h>
@@ -28,5 +28,3 @@
 #include <cairomm/context.h>
 #include <curl/curl.h>
 #include <Poco/URI.h>
-
-extern std::string urljoin(const std::string &base, const std::string &relative);

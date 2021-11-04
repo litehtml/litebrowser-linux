@@ -27,22 +27,22 @@ public:
 	void on_parent_size_allocate(Gtk::Allocation allocation);
 
 protected:
-	virtual bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
+	bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
 
-	virtual void get_client_rect(litehtml::position& client) const override;
-	virtual	 void on_anchor_click(const litehtml::tchar_t* url, const litehtml::element::ptr& el) override;
-	virtual	 void set_cursor(const litehtml::tchar_t* cursor) override;
-	virtual void import_css(litehtml::tstring& text, const litehtml::tstring& url, litehtml::tstring& baseurl) override;
-	virtual	 void set_caption(const litehtml::tchar_t* caption) override;
-	virtual	 void set_base_url(const litehtml::tchar_t* base_url) override;
-	virtual Glib::RefPtr<Gdk::Pixbuf>	get_image(const litehtml::tchar_t* url, bool redraw_on_ready);
-	virtual void						make_url( const litehtml::tchar_t* url, const litehtml::tchar_t* basepath, litehtml::tstring& out );
+	void get_client_rect(litehtml::position& client) const override;
+	void on_anchor_click(const litehtml::tchar_t* url, const litehtml::element::ptr& el) override;
+	void set_cursor(const litehtml::tchar_t* cursor) override;
+	void import_css(litehtml::tstring& text, const litehtml::tstring& url, litehtml::tstring& baseurl) override;
+	void set_caption(const litehtml::tchar_t* caption) override;
+	void set_base_url(const litehtml::tchar_t* base_url) override;
+	Glib::RefPtr<Gdk::Pixbuf>	get_image(const litehtml::tchar_t* url, bool redraw_on_ready) override;
+	void make_url( const litehtml::tchar_t* url, const litehtml::tchar_t* basepath, litehtml::tstring& out ) override;
 
-	virtual bool on_button_press_event(GdkEventButton* event);
-	virtual bool on_button_release_event(GdkEventButton* event);
-	virtual bool on_motion_notify_event(GdkEventMotion* event);
+	bool on_button_press_event(GdkEventButton* event) override;
+	bool on_button_release_event(GdkEventButton* event) override;
+	bool on_motion_notify_event(GdkEventMotion* event) override;
 
-	virtual void on_parent_changed(Gtk::Widget* previous_parent);
+	void on_parent_changed(Gtk::Widget* previous_parent) override;
 
 private:
 	void load_text_file(const litehtml::tstring& url, litehtml::tstring& out);
