@@ -14,6 +14,8 @@ public:
 	void open_url(const litehtml::tstring& url);
 	void set_url(const litehtml::tstring& url);
 
+    Gtk::ScrolledWindow* get_scrolled() { return &m_scrolled_wnd; }
+
 private:
     void on_go_clicked();
     void on_forward_clicked();

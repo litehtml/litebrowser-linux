@@ -134,8 +134,41 @@ bool browser_window::on_address_key_press(GdkEventKey* event)
 
 void browser_window::open_url(const litehtml::tstring &url)
 {
-	m_address_bar.set_text(url);
-	m_html.open_page(url);
+    std::string hash;
+    std::string s_url = url;
+
+    m_address_bar.set_text(url);
+
+    std::string::size_type hash_pos = s_url.find_first_of(L'#');
+    if(hash_pos != std::wstring::npos)
+    {
+        hash = s_url.substr(hash_pos + 1);
+        s_url.erase(hash_pos);
+    }
+
+    bool open_hash_only = false;
+
+    auto current_url = m_history.current();
+    hash_pos = current_url.find_first_of(L'#');
+    if(hash_pos != std::wstring::npos)
+    {
+        current_url.erase(hash_pos);
+    }
+
+    if(!current_url.empty())
+    {
+        if(current_url == s_url)
+        {
+            open_hash_only = true;
+        }
+    }
+    if(!open_hash_only)
+    {
+        m_html.open_page(url, hash);
+    } else
+    {
+        m_html.show_hash(hash);
+    }
     m_history.url_opened(url);
     update_buttons();
 }

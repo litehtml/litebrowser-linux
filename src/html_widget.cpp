@@ -9,6 +9,7 @@
 
 html_widget::html_widget(litehtml::context* html_context, browser_window* browser)
 {
+    m_hash_valid        = false;
     m_browser           = browser;
 	m_rendered_width	= 0;
 	m_html_context 		= html_context;
@@ -117,7 +118,7 @@ Gtk::Allocation html_widget::get_parent_allocation()
     return parent->get_allocation();
 }
 
-void html_widget::open_page(const litehtml::tstring& url)
+void html_widget::open_page(const litehtml::tstring& url, const litehtml::tstring& hash)
 {
 	m_url 		= url;
 	m_base_url	= url;
@@ -132,10 +133,42 @@ void html_widget::open_page(const litehtml::tstring& url)
 	{
 		m_rendered_width = get_parent_allocation().get_width();
 		m_html->render(m_rendered_width);
-		set_size_request(m_html->width(), m_html->height());
+        m_hash = hash;
+        m_hash_valid = true;
+        set_size_request(m_html->width(), m_html->height());
 	}
 
     queue_draw();
+}
+
+void html_widget::scroll_to(int x, int y)
+{
+    auto vadj = m_browser->get_scrolled()->get_vadjustment();
+    auto hadj = m_browser->get_scrolled()->get_hadjustment();
+    vadj->set_value(vadj->get_lower() + y);
+    hadj->set_value(hadj->get_lower() + x);
+}
+
+void html_widget::show_hash(const litehtml::tstring& hash)
+{
+    if(hash.empty())
+    {
+        scroll_to(0, 0);
+    } else
+    {
+        std::string selector = "#" + hash;
+        litehtml::element::ptr el = m_html->root()->select_one(selector);
+        if (!el)
+        {
+            selector = "[name=" + hash + "]";
+            el = m_html->root()->select_one(selector);
+            if (el)
+            {
+                litehtml::position pos = el->get_placement();
+                scroll_to(0, pos.top());
+            }
+        }
+    }
 }
 
 void html_widget::make_url(const litehtml::tchar_t* url, const litehtml::tchar_t* basepath, litehtml::tstring& out)
@@ -272,4 +305,14 @@ long html_widget::render_measure(int number)
         return (std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1)).count();
     }
     return -1;
+}
+
+void html_widget::on_size_allocate(Gtk::Allocation& allocation)
+{
+    Gtk::DrawingArea::on_size_allocate(allocation);
+    if(m_hash_valid)
+    {
+        show_hash(m_hash);
+        m_hash_valid = false;
+    }
 }

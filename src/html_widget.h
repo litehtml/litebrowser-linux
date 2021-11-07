@@ -18,18 +18,23 @@ class html_widget :		public Gtk::DrawingArea,
 	litehtml::tstring			m_clicked_url;
 	browser_window*				m_browser;
 	http_loader					m_http;
+    std::string                 m_hash;
+    bool                        m_hash_valid;
 public:
 	html_widget(litehtml::context* html_context, browser_window* browser);
 	virtual ~html_widget();
 
-	void open_page(const litehtml::tstring& url);
+	void open_page(const litehtml::tstring& url, const litehtml::tstring& hash);
+	void show_hash(const litehtml::tstring& hash);
 	void update_cursor();
 	void on_parent_size_allocate(Gtk::Allocation allocation);
+    void on_size_allocate(Gtk::Allocation& allocation) override;
 
     long render_measure(int number);
 
 protected:
 	bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
+	void scroll_to(int x, int y);
 
 	void get_client_rect(litehtml::position& client) const override;
 	void on_anchor_click(const litehtml::tchar_t* url, const litehtml::element::ptr& el) override;
