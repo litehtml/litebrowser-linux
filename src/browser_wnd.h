@@ -1,6 +1,9 @@
 #pragma once
 
 #include "html_widget.h"
+#include <vector>
+#include <string>
+#include "web_history.h"
 
 class browser_window : public Gtk::Window
 {
@@ -13,14 +16,37 @@ public:
 
 private:
     void on_go_clicked();
+    void on_forward_clicked();
+    void on_back_clicked();
+    void on_render_measure(int number);
     bool on_address_key_press(GdkEventKey* event);
 
 protected:
 	html_widget			m_html;
 	Gtk::Entry			m_address_bar;
-	Gtk::Button			m_go_button;
+    Gtk::Button			m_go_button;
+    Gtk::Button			m_forward_button;
+    Gtk::Button			m_back_button;
+    Gtk::MenuButton		m_bookmarks_button;
+    Gtk::MenuButton		m_tools_button;
 	Gtk::VBox			m_vbox;
 	Gtk::HBox			m_hbox;
 	Gtk::ScrolledWindow m_scrolled_wnd;
+    web_history         m_history;
+
+    Gtk::Menu           m_menu_bookmarks;
+    Gtk::MenuItem       m_bm_litehtml;
+    Gtk::MenuItem       m_bm_truelaunchbar;
+    Gtk::MenuItem       m_bm_tordex;
+    Gtk::MenuItem       m_bm_obama;
+
+    Gtk::Menu           m_menu_tools;
+    Gtk::MenuItem       m_tools_render1;
+    Gtk::MenuItem       m_tools_render10;
+    Gtk::MenuItem       m_tools_render100;
+
+    std::unique_ptr<Gtk::MessageDialog> m_pDialog;
+
+    void update_buttons();
 };
 

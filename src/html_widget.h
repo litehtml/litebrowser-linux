@@ -26,6 +26,8 @@ public:
 	void update_cursor();
 	void on_parent_size_allocate(Gtk::Allocation allocation);
 
+    long render_measure(int number);
+
 protected:
 	bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
 

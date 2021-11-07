@@ -24,12 +24,14 @@ set(SOURCE  ${LITEBROWSER_PATH}/main.cpp
             ${LITEBROWSER_PATH}/html_widget.cpp
             ${CONTAINER_PATH}/container_linux.cpp
             ${LITEBROWSER_PATH}/browser_wnd.cpp
+            ${LITEBROWSER_PATH}/web_history.cpp
     )
 
 set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
             ${LITEBROWSER_PATH}/html_widget.h
             ${LITEBROWSER_PATH}/globals.h
             ${CONTAINER_PATH}/container_linux.h
+            ${LITEBROWSER_PATH}/web_history.h
     )
 
 add_subdirectory(${LITEHTML_PATH})

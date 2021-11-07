@@ -3,13 +3,16 @@
 #include "browser_wnd.h"
 #include <litehtml/url_path.h>
 #include <litehtml/url.h>
+#include <chrono>
+
+#define BUFF_SIZE    10 * 1024
 
 html_widget::html_widget(litehtml::context* html_context, browser_window* browser)
 {
     m_browser           = browser;
 	m_rendered_width	= 0;
 	m_html_context 		= html_context;
-	m_html 				= NULL;
+	m_html 				= nullptr;
 	add_events(Gdk::POINTER_MOTION_MASK | Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK);
 }
 
@@ -248,10 +251,25 @@ void html_widget::load_text_file(const litehtml::tstring& url, litehtml::tstring
     out.clear();
     Glib::RefPtr< Gio::InputStream > stream = m_http.load_file(url);
     gssize sz;
-    char buff[1025];
-    while( (sz = stream->read(buff, 1024)) > 0 )
+    char buff[BUFF_SIZE + 1];
+    while( (sz = stream->read(buff, BUFF_SIZE)) > 0 )
     {
         buff[sz] = 0;
         out += buff;
     }
+}
+
+long html_widget::render_measure(int number)
+{
+    if(m_html)
+    {
+        auto t1 = std::chrono::high_resolution_clock::now();
+        for (int i = 0; i < number; i++)
+        {
+            m_html->render(m_rendered_width);
+        }
+        auto t2 = std::chrono::high_resolution_clock::now();
+        return (std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1)).count();
+    }
+    return -1;
 }
