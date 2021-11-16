@@ -21,6 +21,7 @@ private:
     void on_forward_clicked();
     void on_back_clicked();
     void on_render_measure(int number);
+    void on_draw_measure(int number);
     bool on_address_key_press(GdkEventKey* event);
 
 protected:
@@ -46,6 +47,9 @@ protected:
     Gtk::MenuItem       m_tools_render1;
     Gtk::MenuItem       m_tools_render10;
     Gtk::MenuItem       m_tools_render100;
+    Gtk::MenuItem       m_tools_draw1;
+    Gtk::MenuItem       m_tools_draw10;
+    Gtk::MenuItem       m_tools_draw100;
 
     std::unique_ptr<Gtk::MessageDialog> m_pDialog;
 

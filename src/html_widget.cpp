@@ -292,6 +292,49 @@ void html_widget::load_text_file(const litehtml::tstring& url, litehtml::tstring
     }
 }
 
+long html_widget::draw_measure(int number)
+{
+    auto vadj = m_browser->get_scrolled()->get_vadjustment();
+    auto hadj = m_browser->get_scrolled()->get_hadjustment();
+
+    int width = (int) hadj->get_page_size();
+    int height = (int) vadj->get_page_size();
+
+    int stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, width);
+    auto image= (unsigned char*)g_malloc (stride * height);
+
+    cairo_surface_t* surface = cairo_image_surface_create_for_data(image, CAIRO_FORMAT_ARGB32, width, height, stride);
+    cairo_t* cr = cairo_create(surface);
+
+    litehtml::position pos;
+    pos.width 	= width;
+    pos.height 	= height;
+    pos.x 		= 0;
+    pos.y 		= 0;
+
+    int x = (int) (hadj->get_value() - hadj->get_lower());
+    int y = (int) (vadj->get_value() - vadj->get_lower());
+
+    cairo_rectangle(cr, 0, 0, width, height);
+    cairo_set_source_rgb(cr, 1, 1, 1);
+    cairo_paint(cr);
+    m_html->draw((litehtml::uint_ptr) cr, -x, -y, &pos);
+    cairo_surface_write_to_png(surface, "/tmp/litebrowser.png");
+
+    auto t1 = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < number; i++)
+    {
+        m_html->draw((litehtml::uint_ptr) cr, -x, -y, &pos);
+    }
+    auto t2 = std::chrono::high_resolution_clock::now();
+
+    cairo_destroy(cr);
+    cairo_surface_destroy(surface);
+    g_free(image);
+
+    return (std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1)).count();
+}
+
 long html_widget::render_measure(int number)
 {
     if(m_html)

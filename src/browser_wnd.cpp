@@ -12,7 +12,11 @@ browser_window::browser_window(litehtml::context* html_context) :
 
         m_tools_render1("Single Render"),
         m_tools_render10("Render 10 Times"),
-        m_tools_render100("Render 100 Times")
+        m_tools_render100("Render 100 Times"),
+
+        m_tools_draw1("Single Draw"),
+        m_tools_draw10("Draw 10 Times"),
+        m_tools_draw100("Draw 100 Times")
 {
 	set_title("litehtml");
 
@@ -84,6 +88,9 @@ browser_window::browser_window(litehtml::context* html_context) :
     m_menu_tools.append(m_tools_render1);
     m_menu_tools.append(m_tools_render10);
     m_menu_tools.append(m_tools_render100);
+    m_menu_tools.append(m_tools_draw1);
+    m_menu_tools.append(m_tools_draw10);
+    m_menu_tools.append(m_tools_draw100);
     m_menu_tools.show_all();
 
     m_tools_render1.signal_activate().connect(
@@ -99,6 +106,19 @@ browser_window::browser_window(litehtml::context* html_context) :
                     sigc::mem_fun(*this, &browser_window::on_render_measure),
                     100));
 
+    m_tools_draw1.signal_activate().connect(
+            sigc::bind(
+                    sigc::mem_fun(*this, &browser_window::on_draw_measure),
+                    1));
+    m_tools_draw10.signal_activate().connect(
+            sigc::bind(
+                    sigc::mem_fun(*this, &browser_window::on_draw_measure),
+                    10));
+    m_tools_draw100.signal_activate().connect(
+            sigc::bind(
+                    sigc::mem_fun(*this, &browser_window::on_draw_measure),
+                    100));
+    
     m_vbox.pack_start(m_scrolled_wnd, Gtk::PACK_EXPAND_WIDGET);
 	m_scrolled_wnd.show();
 
@@ -147,6 +167,7 @@ void browser_window::open_url(const litehtml::tstring &url)
     }
 
     bool open_hash_only = false;
+    bool reload = false;
 
     auto current_url = m_history.current();
     hash_pos = current_url.find_first_of(L'#');
@@ -157,9 +178,15 @@ void browser_window::open_url(const litehtml::tstring &url)
 
     if(!current_url.empty())
     {
-        if(current_url == s_url)
+        if(m_history.current() != url)
         {
-            open_hash_only = true;
+            if (current_url == s_url)
+            {
+                open_hash_only = true;
+            }
+        } else
+        {
+            reload = true;
         }
     }
     if(!open_hash_only)
@@ -169,7 +196,10 @@ void browser_window::open_url(const litehtml::tstring &url)
     {
         m_html.show_hash(hash);
     }
-    m_history.url_opened(url);
+    if(!reload)
+    {
+        m_history.url_opened(url);
+    }
     update_buttons();
 }
 
@@ -222,6 +252,21 @@ void browser_window::on_render_measure(int number)
     long time = m_html.render_measure(number);
 
     message << time << " ms for " << number << " times rendering";
+
+    m_pDialog.reset(new Gtk::MessageDialog(*this, message.str(), false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_CLOSE, true));
+
+    m_pDialog->signal_response().connect(
+            sigc::hide(sigc::mem_fun(*m_pDialog, &Gtk::Widget::hide)));
+    m_pDialog->show();
+}
+
+void browser_window::on_draw_measure(int number)
+{
+    std::ostringstream message;
+
+    long time = m_html.draw_measure(number);
+
+    message << time << " ms for " << number << " times measure";
 
     m_pDialog.reset(new Gtk::MessageDialog(*this, message.str(), false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_CLOSE, true));
 

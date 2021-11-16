@@ -31,6 +31,7 @@ public:
     void on_size_allocate(Gtk::Allocation& allocation) override;
 
     long render_measure(int number);
+    long draw_measure(int number);
 
 protected:
 	bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
