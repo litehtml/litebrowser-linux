@@ -23,6 +23,7 @@ private:
     void on_render_measure(int number);
     void on_draw_measure(int number);
     bool on_address_key_press(GdkEventKey* event);
+    void on_dump();
 
 protected:
 	html_widget			m_html;
@@ -50,6 +51,7 @@ protected:
     Gtk::MenuItem       m_tools_draw1;
     Gtk::MenuItem       m_tools_draw10;
     Gtk::MenuItem       m_tools_draw100;
+    Gtk::MenuItem       m_tools_dump;
 
     std::unique_ptr<Gtk::MessageDialog> m_pDialog;
 

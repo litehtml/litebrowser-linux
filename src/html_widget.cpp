@@ -4,8 +4,65 @@
 #include <litehtml/url_path.h>
 #include <litehtml/url.h>
 #include <chrono>
+#include <ostream>
+#include <stack>
 
 #define BUFF_SIZE    10 * 1024
+
+class html_dumper : public litehtml::dumper
+{
+    std::ofstream m_cout;
+    int indent;
+    std::list<std::tuple<int, std::string>> m_node_text;
+private:
+    void print_indent(int size)
+    {
+        m_cout << litehtml::tstring(size, '\t');
+    }
+
+public:
+    html_dumper(const litehtml::tstring& file_name) : m_cout(file_name), indent(0)
+    {
+
+    }
+
+    void begin_node(const litehtml::tstring &descr) override
+    {
+        m_node_text.emplace_back(std::make_tuple(indent, "#" + descr));
+        indent++;
+    }
+
+    void end_node() override
+    {
+        indent--;
+    }
+
+    void begin_attrs_group(const litehtml::tstring &descr) override
+    {
+    }
+
+    void end_attrs_group() override
+    {
+    }
+
+    void add_attr(const litehtml::tstring &name, const litehtml::tstring &value) override
+    {
+        if(name == "display" || name == "float")
+        {
+            std::get<1>(m_node_text.back()) += " " + name + "[" + value + "]";
+        }
+    }
+
+    void print()
+    {
+        for(const auto& data : m_node_text)
+        {
+            print_indent(std::get<0>(data));
+            m_cout << std::get<1>(data) << std::endl;
+        }
+    }
+};
+
 
 html_widget::html_widget(litehtml::context* html_context, browser_window* browser)
 {
@@ -162,11 +219,11 @@ void html_widget::show_hash(const litehtml::tstring& hash)
         {
             selector = "[name=" + hash + "]";
             el = m_html->root()->select_one(selector);
-            if (el)
-            {
-                litehtml::position pos = el->get_placement();
-                scroll_to(0, pos.top());
-            }
+        }
+        if (el)
+        {
+            litehtml::position pos = el->get_placement();
+            scroll_to(0, pos.top());
         }
     }
 }
@@ -268,7 +325,7 @@ void html_widget::update_cursor()
     Gdk::CursorType cursType = Gdk::ARROW;
     if(m_cursor == _t("pointer"))
     {
-        cursType = Gdk::HAND1;
+        cursType = Gdk::HAND2;
     }
     if(cursType == Gdk::ARROW)
     {
@@ -359,3 +416,14 @@ void html_widget::on_size_allocate(Gtk::Allocation& allocation)
         m_hash_valid = false;
     }
 }
+
+void html_widget::dump(const litehtml::tstring& file_name)
+{
+    if(m_html)
+    {
+        html_dumper dumper(file_name);
+        m_html->dump(dumper);
+        dumper.print();
+    }
+}
+

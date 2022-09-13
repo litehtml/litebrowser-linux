@@ -16,7 +16,9 @@ browser_window::browser_window(litehtml::context* html_context) :
 
         m_tools_draw1("Single Draw"),
         m_tools_draw10("Draw 10 Times"),
-        m_tools_draw100("Draw 100 Times")
+        m_tools_draw100("Draw 100 Times"),
+
+        m_tools_dump("Dump parsed HTML")
 {
 	set_title("litehtml");
 
@@ -91,6 +93,8 @@ browser_window::browser_window(litehtml::context* html_context) :
     m_menu_tools.append(m_tools_draw1);
     m_menu_tools.append(m_tools_draw10);
     m_menu_tools.append(m_tools_draw100);
+    m_menu_tools.append(m_tools_dump);
+
     m_menu_tools.show_all();
 
     m_tools_render1.signal_activate().connect(
@@ -118,7 +122,10 @@ browser_window::browser_window(litehtml::context* html_context) :
             sigc::bind(
                     sigc::mem_fun(*this, &browser_window::on_draw_measure),
                     100));
-    
+
+    m_tools_dump.signal_activate().connect(
+            sigc::mem_fun(*this, &browser_window::on_dump));
+
     m_vbox.pack_start(m_scrolled_wnd, Gtk::PACK_EXPAND_WIDGET);
 	m_scrolled_wnd.show();
 
@@ -273,4 +280,9 @@ void browser_window::on_draw_measure(int number)
     m_pDialog->signal_response().connect(
             sigc::hide(sigc::mem_fun(*m_pDialog, &Gtk::Widget::hide)));
     m_pDialog->show();
+}
+
+void browser_window::on_dump()
+{
+    m_html.dump("/tmp/litehtml-dump.txt");
 }

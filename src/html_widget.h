@@ -26,6 +26,7 @@ public:
 
 	void open_page(const litehtml::tstring& url, const litehtml::tstring& hash);
 	void show_hash(const litehtml::tstring& hash);
+    void dump(const litehtml::tstring& file_name);
 	void update_cursor();
 	void on_parent_size_allocate(Gtk::Allocation allocation);
     void on_size_allocate(Gtk::Allocation& allocation) override;
