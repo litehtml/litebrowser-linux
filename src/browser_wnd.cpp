@@ -3,12 +3,22 @@
 #include <gdk/gdkkeysyms.h>
 #include <sstream>
 
+struct
+{
+    const char* name;
+    const char* url;
+} g_bookmarks[] =
+        {
+                {"litehtml Web Site", "http://www.litehtml.com/"},
+                {"True Launch Bar", "http://www.truelaunchbar.com/"},
+                {"Tordex", "http://www.tordex.com/"},
+                {"Obama (Wiki)", "https://en.wikipedia.org/wiki/Barack_Obama"},
+                {"Elizabeth II", "https://en.wikipedia.org/wiki/Elizabeth_II"},
+                {"std::vector", "https://en.cppreference.com/w/cpp/container/vector"},
+        };
+
 browser_window::browser_window(litehtml::context* html_context) :
         m_html(html_context, this),
-        m_bm_litehtml("litehtml Web Site"),
-        m_bm_truelaunchbar("True Launch Bar"),
-        m_bm_tordex("Tordex"),
-        m_bm_obama("Obama (Wiki)"),
 
         m_tools_render1("Single Render"),
         m_tools_render10("Render 10 Times"),
@@ -53,33 +63,21 @@ browser_window::browser_window(litehtml::context* html_context) :
 
     m_menu_bookmarks.set_halign(Gtk::ALIGN_END);
 
-    m_menu_bookmarks.append(m_bm_litehtml);
-    m_menu_bookmarks.append(m_bm_truelaunchbar);
-    m_menu_bookmarks.append(m_bm_tordex);
-    m_menu_bookmarks.append(m_bm_obama);
+    for(const auto& url : g_bookmarks)
+    {
+        m_menu_items.emplace_back(url.name);
+        m_menu_bookmarks.append(m_menu_items.back());
+        m_menu_items.back().signal_activate().connect(
+                sigc::bind(
+                        sigc::mem_fun(*this, &browser_window::open_url),
+                        litehtml::tstring(url.url)));
+    }
     m_menu_bookmarks.show_all();
 
     m_hbox.pack_start(m_bookmarks_button, Gtk::PACK_SHRINK);
     m_bookmarks_button.set_popup(m_menu_bookmarks);
     m_bookmarks_button.show();
     m_bookmarks_button.set_image_from_icon_name("user-bookmarks-symbolic", Gtk::ICON_SIZE_BUTTON);
-
-    m_bm_litehtml.signal_activate().connect(
-            sigc::bind(
-                    sigc::mem_fun(*this, &browser_window::open_url),
-                    litehtml::tstring("http://www.litehtml.com/")));
-    m_bm_truelaunchbar.signal_activate().connect(
-            sigc::bind(
-                    sigc::mem_fun(*this, &browser_window::open_url),
-                    litehtml::tstring("http://www.truelaunchbar.com/")));
-    m_bm_tordex.signal_activate().connect(
-            sigc::bind(
-                    sigc::mem_fun(*this, &browser_window::open_url),
-                    litehtml::tstring("http://www.tordex.com/")));
-    m_bm_obama.signal_activate().connect(
-            sigc::bind(
-                    sigc::mem_fun(*this, &browser_window::open_url),
-                    litehtml::tstring("https://en.wikipedia.org/wiki/Barack_Obama")));
 
     m_hbox.pack_start(m_tools_button, Gtk::PACK_SHRINK);
     m_tools_button.set_popup(m_menu_tools);

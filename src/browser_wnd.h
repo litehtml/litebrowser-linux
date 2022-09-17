@@ -39,10 +39,7 @@ protected:
     web_history         m_history;
 
     Gtk::Menu           m_menu_bookmarks;
-    Gtk::MenuItem       m_bm_litehtml;
-    Gtk::MenuItem       m_bm_truelaunchbar;
-    Gtk::MenuItem       m_bm_tordex;
-    Gtk::MenuItem       m_bm_obama;
+    std::vector<Gtk::MenuItem> m_menu_items;
 
     Gtk::Menu           m_menu_tools;
     Gtk::MenuItem       m_tools_render1;
