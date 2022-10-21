@@ -17,16 +17,16 @@ class html_dumper : public litehtml::dumper
 private:
     void print_indent(int size)
     {
-        m_cout << litehtml::tstring(size, '\t');
+        m_cout << litehtml::string(size, '\t');
     }
 
 public:
-    html_dumper(const litehtml::tstring& file_name) : m_cout(file_name), indent(0)
+    html_dumper(const litehtml::string& file_name) : m_cout(file_name), indent(0)
     {
 
     }
 
-    void begin_node(const litehtml::tstring &descr) override
+    void begin_node(const litehtml::string &descr) override
     {
         m_node_text.emplace_back(std::make_tuple(indent, "#" + descr));
         indent++;
@@ -37,7 +37,7 @@ public:
         indent--;
     }
 
-    void begin_attrs_group(const litehtml::tstring &descr) override
+    void begin_attrs_group(const litehtml::string &descr) override
     {
     }
 
@@ -45,7 +45,7 @@ public:
     {
     }
 
-    void add_attr(const litehtml::tstring &name, const litehtml::tstring &value) override
+    void add_attr(const litehtml::string &name, const litehtml::string &value) override
     {
         if(name == "display" || name == "float")
         {
@@ -112,7 +112,7 @@ void html_widget::get_client_rect(litehtml::position& client) const
 }
 
 
-void html_widget::on_anchor_click(const litehtml::tchar_t* url, const litehtml::element::ptr& el)
+void html_widget::on_anchor_click(const char* url, const litehtml::element::ptr& el)
 {
     if(url)
     {
@@ -120,7 +120,7 @@ void html_widget::on_anchor_click(const litehtml::tchar_t* url, const litehtml::
     }
 }
 
-void html_widget::set_cursor(const litehtml::tchar_t* cursor)
+void html_widget::set_cursor(const char* cursor)
 {
     if(cursor)
     {
@@ -132,7 +132,7 @@ void html_widget::set_cursor(const litehtml::tchar_t* cursor)
     }
 }
 
-void html_widget::import_css(litehtml::tstring& text, const litehtml::tstring& url, litehtml::tstring& baseurl)
+void html_widget::import_css(litehtml::string& text, const litehtml::string& url, litehtml::string& baseurl)
 {
 	std::string css_url;
 	make_url(url.c_str(), baseurl.c_str(), css_url);
@@ -143,7 +143,7 @@ void html_widget::import_css(litehtml::tstring& text, const litehtml::tstring& u
 	}
 }
 
-void html_widget::set_caption(const litehtml::tchar_t* caption)
+void html_widget::set_caption(const char* caption)
 {
 	if(get_parent_window())
 	{
@@ -151,18 +151,18 @@ void html_widget::set_caption(const litehtml::tchar_t* caption)
 	}
 }
 
-void html_widget::set_base_url(const litehtml::tchar_t* base_url)
+void html_widget::set_base_url(const char* base_url)
 {
 	if(base_url)
 	{
-		m_base_url = litehtml::resolve(litehtml::url(m_url), litehtml::url(base_url)).string();
+		m_base_url = litehtml::resolve(litehtml::url(m_url), litehtml::url(base_url)).str();
 	} else
 	{
 		m_base_url = m_url;
 	}
 }
 
-Glib::RefPtr<Gdk::Pixbuf> html_widget::get_image(const litehtml::tchar_t* url, bool redraw_on_ready)
+Glib::RefPtr<Gdk::Pixbuf> html_widget::get_image(const char* url, bool redraw_on_ready)
 {
 	Glib::RefPtr< Gio::InputStream > stream = m_http.load_file(url);
 	Glib::RefPtr<Gdk::Pixbuf> ptr = Gdk::Pixbuf::create_from_stream(stream);
@@ -175,7 +175,7 @@ Gtk::Allocation html_widget::get_parent_allocation()
     return parent->get_allocation();
 }
 
-void html_widget::open_page(const litehtml::tstring& url, const litehtml::tstring& hash)
+void html_widget::open_page(const litehtml::string& url, const litehtml::string& hash)
 {
 	m_url 		= url;
 	m_base_url	= url;
@@ -206,7 +206,7 @@ void html_widget::scroll_to(int x, int y)
     hadj->set_value(hadj->get_lower() + x);
 }
 
-void html_widget::show_hash(const litehtml::tstring& hash)
+void html_widget::show_hash(const litehtml::string& hash)
 {
     if(hash.empty())
     {
@@ -228,20 +228,20 @@ void html_widget::show_hash(const litehtml::tstring& hash)
     }
 }
 
-void html_widget::make_url(const litehtml::tchar_t* url, const litehtml::tchar_t* basepath, litehtml::tstring& out)
+void html_widget::make_url(const char* url, const char* basepath, litehtml::string& out)
 {
 	if(!basepath || !basepath[0])
 	{
 		if(!m_base_url.empty())
 		{
-			out = litehtml::resolve(litehtml::url(m_base_url), litehtml::url(url)).string();
+			out = litehtml::resolve(litehtml::url(m_base_url), litehtml::url(url)).str();
 		} else
 		{
 			out = url;
 		}
 	} else
 	{
-		out = litehtml::resolve(litehtml::url(basepath), litehtml::url(url)).string();
+		out = litehtml::resolve(litehtml::url(basepath), litehtml::url(url)).str();
 	}
 }
 
@@ -323,7 +323,7 @@ bool html_widget::on_motion_notify_event(GdkEventMotion *event)
 void html_widget::update_cursor()
 {
     Gdk::CursorType cursType = Gdk::ARROW;
-    if(m_cursor == _t("pointer"))
+    if(m_cursor == "pointer")
     {
         cursType = Gdk::HAND2;
     }
@@ -336,7 +336,7 @@ void html_widget::update_cursor()
     }
 }
 
-void html_widget::load_text_file(const litehtml::tstring& url, litehtml::tstring& out)
+void html_widget::load_text_file(const litehtml::string& url, litehtml::string& out)
 {
     out.clear();
     Glib::RefPtr< Gio::InputStream > stream = m_http.load_file(url);
@@ -417,7 +417,7 @@ void html_widget::on_size_allocate(Gtk::Allocation& allocation)
     }
 }
 
-void html_widget::dump(const litehtml::tstring& file_name)
+void html_widget::dump(const litehtml::string& file_name)
 {
     if(m_html)
     {

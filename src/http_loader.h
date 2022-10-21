@@ -8,7 +8,7 @@ public:
     http_loader();
     ~http_loader();
 
-    Glib::RefPtr< Gio::InputStream > load_file(const litehtml::tstring& url);
+    Glib::RefPtr< Gio::InputStream > load_file(const litehtml::string& url);
     const char* get_url() const;
 
 private:

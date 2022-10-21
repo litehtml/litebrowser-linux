@@ -11,8 +11,8 @@ public:
 	browser_window(litehtml::context* html_context);
 	virtual ~browser_window();
 
-	void open_url(const litehtml::tstring& url);
-	void set_url(const litehtml::tstring& url);
+	void open_url(const litehtml::string& url);
+	void set_url(const litehtml::string& url);
 
     Gtk::ScrolledWindow* get_scrolled() { return &m_scrolled_wnd; }
 
