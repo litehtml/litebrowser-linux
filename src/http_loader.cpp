@@ -23,7 +23,7 @@ size_t http_loader::curlWriteFunction( void *ptr, size_t size, size_t nmemb, voi
     return size * nmemb;
 }
 
-Glib::RefPtr< Gio::InputStream > http_loader::load_file(const litehtml::tstring& url)
+Glib::RefPtr< Gio::InputStream > http_loader::load_file(const litehtml::string& url)
 {
     m_url = url;
 

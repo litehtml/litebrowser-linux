@@ -70,7 +70,7 @@ browser_window::browser_window(litehtml::context* html_context) :
         m_menu_items.back().signal_activate().connect(
                 sigc::bind(
                         sigc::mem_fun(*this, &browser_window::open_url),
-                        litehtml::tstring(url.url)));
+                        litehtml::string(url.url)));
     }
     m_menu_bookmarks.show_all();
 
@@ -141,7 +141,7 @@ browser_window::~browser_window()
 
 void browser_window::on_go_clicked()
 {
-	litehtml::tstring url = m_address_bar.get_text();
+	litehtml::string url = m_address_bar.get_text();
 	open_url(url);
 }
 
@@ -157,7 +157,7 @@ bool browser_window::on_address_key_press(GdkEventKey* event)
 	return false;
 }
 
-void browser_window::open_url(const litehtml::tstring &url)
+void browser_window::open_url(const litehtml::string &url)
 {
     std::string hash;
     std::string s_url = url;
@@ -208,7 +208,7 @@ void browser_window::open_url(const litehtml::tstring &url)
     update_buttons();
 }
 
-void browser_window::set_url(const litehtml::tstring &url)
+void browser_window::set_url(const litehtml::string &url)
 {
 	m_address_bar.set_text(url);
 }
