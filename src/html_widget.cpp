@@ -64,12 +64,11 @@ public:
 };
 
 
-html_widget::html_widget(litehtml::context* html_context, browser_window* browser)
+html_widget::html_widget(browser_window* browser)
 {
     m_hash_valid        = false;
     m_browser           = browser;
 	m_rendered_width	= 0;
-	m_html_context 		= html_context;
 	m_html 				= nullptr;
 	add_events(Gdk::POINTER_MOTION_MASK | Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK);
 }
@@ -185,7 +184,7 @@ void html_widget::open_page(const litehtml::string& url, const litehtml::string&
 	m_url 		= m_http.get_url();
 	m_base_url	= m_http.get_url();
 	m_browser->set_url(m_url);
-	m_html = litehtml::document::createFromString(html.c_str(), this, m_html_context);
+	m_html = litehtml::document::createFromString(html.c_str(), this);
 	if(m_html)
 	{
 		m_rendered_width = get_parent_allocation().get_width();
