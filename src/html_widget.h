@@ -12,7 +12,6 @@ class html_widget :		public Gtk::DrawingArea,
 	litehtml::string			m_url;
 	litehtml::string			m_base_url;
 	litehtml::document::ptr		m_html;
-	litehtml::context*			m_html_context;
 	int							m_rendered_width;
 	litehtml::string			m_cursor;
 	litehtml::string			m_clicked_url;
@@ -21,7 +20,7 @@ class html_widget :		public Gtk::DrawingArea,
     std::string                 m_hash;
     bool                        m_hash_valid;
 public:
-	html_widget(litehtml::context* html_context, browser_window* browser);
+	html_widget(browser_window* browser);
 	virtual ~html_widget();
 
 	void open_page(const litehtml::string& url, const litehtml::string& hash);

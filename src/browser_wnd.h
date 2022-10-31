@@ -8,7 +8,7 @@
 class browser_window : public Gtk::Window
 {
 public:
-	browser_window(litehtml::context* html_context);
+	browser_window();
 	virtual ~browser_window();
 
 	void open_url(const litehtml::string& url);

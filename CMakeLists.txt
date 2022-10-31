@@ -36,12 +36,7 @@ set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
 
 add_subdirectory(${LITEHTML_PATH})
 
-find_program(XXD_COMMAND xxd)
-add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc
-                   COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/${LITEHTML_PATH}/include/master.css | xxd -i > ${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc)
-set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc PROPERTIES GENERATED TRUE)
-
-add_executable(${PROJECT_NAME} ${SOURCE} ${HEADERS} ${CMAKE_CURRENT_SOURCE_DIR}/src/master.css.inc src/http_loader.h src/http_loader.cpp)
+add_executable(${PROJECT_NAME} ${SOURCE} ${HEADERS} src/http_loader.h src/http_loader.cpp)
 include_directories(${PROJECT_NAME} ${LITEHTML_PATH}/include ${LB_LIBS_INCLUDE_DIRS})
 target_link_options(${PROJECT_NAME} PRIVATE ${LB_LIBS_LDFLAGS})
 target_link_libraries(${PROJECT_NAME} litehtml ${LB_LIBS_LIBRARIES})

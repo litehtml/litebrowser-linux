@@ -17,8 +17,8 @@ struct
                 {"std::vector", "https://en.cppreference.com/w/cpp/container/vector"},
         };
 
-browser_window::browser_window(litehtml::context* html_context) :
-        m_html(html_context, this),
+browser_window::browser_window() :
+        m_html(this),
 
         m_tools_render1("Single Render"),
         m_tools_render10("Render 10 Times"),
