@@ -12,8 +12,8 @@ struct
                 {"litehtml Web Site", "http://www.litehtml.com/"},
                 {"True Launch Bar", "http://www.truelaunchbar.com/"},
                 {"Tordex", "http://www.tordex.com/"},
-                {"Obama (Wiki)", "https://en.wikipedia.org/wiki/Barack_Obama"},
-                {"Elizabeth II", "https://en.wikipedia.org/wiki/Elizabeth_II"},
+                {"Obama (Wiki)", "https://en.wikipedia.org/wiki/Barack_Obama?useskin=vector"},
+                {"Elizabeth II", "https://en.wikipedia.org/wiki/Elizabeth_II?useskin=vector"},
                 {"std::vector", "https://en.cppreference.com/w/cpp/container/vector"},
         };
 
@@ -30,59 +30,67 @@ browser_window::browser_window() :
 
         m_tools_dump("Dump parsed HTML")
 {
-	set_title("litehtml");
-
 	add(m_vbox);
 	m_vbox.show();
 
-	m_vbox.pack_start(m_hbox, Gtk::PACK_SHRINK);
-	m_hbox.show();
+	set_titlebar(m_header);
 
-    m_hbox.pack_start(m_back_button, Gtk::PACK_SHRINK);
+	m_header.show();
+
+	m_header.set_show_close_button(true);
+	m_header.property_spacing().set_value(0);
+
+	m_header.pack_start(m_back_button);
     m_back_button.show();
     m_back_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_back_clicked) );
     m_back_button.set_image_from_icon_name("go-previous-symbolic", Gtk::ICON_SIZE_BUTTON);
 
-    m_hbox.pack_start(m_forward_button, Gtk::PACK_SHRINK);
+	m_header.pack_start(m_forward_button);
     m_forward_button.show();
     m_forward_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_forward_clicked) );
     m_forward_button.set_image_from_icon_name("go-next-symbolic", Gtk::ICON_SIZE_BUTTON);
 
-    m_hbox.pack_start(m_address_bar, Gtk::PACK_EXPAND_WIDGET);
+	m_header.set_custom_title(m_address_bar);
+	m_address_bar.set_hexpand_set(true);
+	m_address_bar.set_hexpand();
+	m_address_bar.property_primary_icon_name().set_value("document-open-symbolic");
+	m_address_bar.set_margin_start(32);
+
 	m_address_bar.show();
 	m_address_bar.set_text("http://www.litehtml.com/");
 
 	m_address_bar.add_events(Gdk::KEY_PRESS_MASK);
 	m_address_bar.signal_key_press_event().connect( sigc::mem_fun(*this, &browser_window::on_address_key_press), false );
 
-    m_go_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_go_clicked) );
+	m_menu_bookmarks.set_halign(Gtk::ALIGN_END);
 
-	m_hbox.pack_start(m_go_button, Gtk::PACK_SHRINK);
-	m_go_button.show();
-    m_go_button.set_image_from_icon_name("media-playback-start-symbolic", Gtk::ICON_SIZE_BUTTON);
+	for(const auto& url : g_bookmarks)
+	{
+		m_menu_items.emplace_back(url.name);
+		m_menu_bookmarks.append(m_menu_items.back());
+		m_menu_items.back().signal_activate().connect(
+				sigc::bind(
+						sigc::mem_fun(*this, &browser_window::open_url),
+						litehtml::string(url.url)));
+	}
+	m_menu_bookmarks.show_all();
 
-    m_menu_bookmarks.set_halign(Gtk::ALIGN_END);
+	m_header.pack_end(m_tools_button);
+	m_tools_button.set_popup(m_menu_tools);
+	m_tools_button.show();
+	m_tools_button.set_image_from_icon_name("preferences-system-symbolic", Gtk::ICON_SIZE_BUTTON);
 
-    for(const auto& url : g_bookmarks)
-    {
-        m_menu_items.emplace_back(url.name);
-        m_menu_bookmarks.append(m_menu_items.back());
-        m_menu_items.back().signal_activate().connect(
-                sigc::bind(
-                        sigc::mem_fun(*this, &browser_window::open_url),
-                        litehtml::string(url.url)));
-    }
-    m_menu_bookmarks.show_all();
-
-    m_hbox.pack_start(m_bookmarks_button, Gtk::PACK_SHRINK);
+	m_header.pack_end(m_bookmarks_button);
     m_bookmarks_button.set_popup(m_menu_bookmarks);
     m_bookmarks_button.show();
     m_bookmarks_button.set_image_from_icon_name("user-bookmarks-symbolic", Gtk::ICON_SIZE_BUTTON);
 
-    m_hbox.pack_start(m_tools_button, Gtk::PACK_SHRINK);
-    m_tools_button.set_popup(m_menu_tools);
-    m_tools_button.show();
-    m_tools_button.set_image_from_icon_name("preferences-system-symbolic", Gtk::ICON_SIZE_BUTTON);
+	m_go_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_go_clicked) );
+	m_go_button.set_margin_end(32);
+
+	m_header.pack_end(m_go_button);
+	m_go_button.show();
+	m_go_button.set_image_from_icon_name("media-playback-start-symbolic", Gtk::ICON_SIZE_BUTTON);
 
     m_menu_tools.set_halign(Gtk::ALIGN_END);
     m_menu_tools.append(m_tools_render1);

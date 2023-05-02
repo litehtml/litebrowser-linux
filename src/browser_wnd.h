@@ -34,7 +34,7 @@ protected:
     Gtk::MenuButton		m_bookmarks_button;
     Gtk::MenuButton		m_tools_button;
 	Gtk::VBox			m_vbox;
-	Gtk::HBox			m_hbox;
+	Gtk::HeaderBar		m_header;
 	Gtk::ScrolledWindow m_scrolled_wnd;
     web_history         m_history;
 
