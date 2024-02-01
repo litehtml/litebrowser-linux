@@ -37,7 +37,7 @@ public:
         indent--;
     }
 
-    void begin_attrs_group(const litehtml::string &descr) override
+    void begin_attrs_group(const litehtml::string &/*descr*/) override
     {
     }
 
@@ -111,7 +111,7 @@ void html_widget::get_client_rect(litehtml::position& client) const
 }
 
 
-void html_widget::on_anchor_click(const char* url, const litehtml::element::ptr& el)
+void html_widget::on_anchor_click(const char* url, const litehtml::element::ptr& /*el*/)
 {
     if(url)
     {
@@ -161,7 +161,7 @@ void html_widget::set_base_url(const char* base_url)
 	}
 }
 
-Glib::RefPtr<Gdk::Pixbuf> html_widget::get_image(const char* url, bool redraw_on_ready)
+Glib::RefPtr<Gdk::Pixbuf> html_widget::get_image(const char* url, bool /*redraw_on_ready*/)
 {
 	Glib::RefPtr< Gio::InputStream > stream = m_http.load_file(url);
 	Glib::RefPtr<Gdk::Pixbuf> ptr = Gdk::Pixbuf::create_from_stream(stream);
@@ -256,7 +256,7 @@ void html_widget::on_parent_size_allocate(Gtk::Allocation allocation)
     }
 }
 
-void html_widget::on_parent_changed(Gtk::Widget* previous_parent)
+void html_widget::on_parent_changed(Gtk::Widget* /*previous_parent*/)
 {
     Gtk::Widget* viewport = get_parent();
     if(viewport)

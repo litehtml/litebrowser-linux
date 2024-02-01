@@ -15,7 +15,7 @@ public:
 	bool forward(std::string& url);
     std::string current() const
     {
-        if(m_current_item >= 0 && m_current_item < m_items.size())
+        if(!m_items.empty() && m_current_item < m_items.size())
         {
             return m_items[m_current_item];
         }
