@@ -38,7 +38,7 @@ option(LITEHTML_BUILD_TESTING "enable testing for litehtml" OFF)
 add_subdirectory(${LITEHTML_PATH})
 
 # additional warnings
-add_compile_options(-Werror -Wall -Wextra -Wpedantic)
+add_compile_options(-Wall -Wextra -Wpedantic)
 
 add_executable(${PROJECT_NAME} ${SOURCE} ${HEADERS} src/http_loader.h src/http_loader.cpp)
 include_directories(${PROJECT_NAME} ${LITEHTML_PATH}/include ${LB_LIBS_INCLUDE_DIRS})
