@@ -34,6 +34,7 @@ set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
             ${LITEBROWSER_PATH}/web_history.h
     )
 
+option(LITEHTML_BUILD_TESTING "enable testing for litehtml" OFF)
 add_subdirectory(${LITEHTML_PATH})
 
 # additional warnings
