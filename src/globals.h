@@ -7,7 +7,7 @@
 #include <vector>
 #include <iostream>
 #include <cstdlib>
-#ifdef __APPLE__
+#if defined __APPLE__ || __OpenBSD__ 
 #include <stdlib.h>
 #else
 #include <malloc.h>
