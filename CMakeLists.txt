@@ -25,12 +25,14 @@ set(SOURCE  ${LITEBROWSER_PATH}/main.cpp
             ${CONTAINER_PATH}/container_linux.cpp
             ${LITEBROWSER_PATH}/browser_wnd.cpp
             ${LITEBROWSER_PATH}/web_history.cpp
+            ${CONTAINER_PATH}/cairo_borders.cpp
     )
 
 set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
             ${LITEBROWSER_PATH}/html_widget.h
             ${LITEBROWSER_PATH}/globals.h
             ${CONTAINER_PATH}/container_linux.h
+            ${CONTAINER_PATH}/cairo_borders.h
             ${LITEBROWSER_PATH}/web_history.h
     )
 
