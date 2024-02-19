@@ -13,12 +13,11 @@ int main (int argc, char *argv[])
     app->signal_command_line().connect(
             sigc::bind(sigc::ptr_fun(on_cmd), app), false);
 
-	browser_window win;
-
-    if(argc > 1)
-    {
-        win.open_url(argv[1]);
-    }
-
+	std::string url;
+	if(argc > 1)
+	{
+		url = argv[1];
+	}
+	browser_window win(url);
 	return app->run(win);
 }

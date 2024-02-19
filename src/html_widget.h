@@ -1,50 +1,65 @@
 #pragma once
 
 #include <gtkmm/drawingarea.h>
+#include <thread>
 #include "../litehtml/containers/linux/container_linux.h"
-#include "http_loader.h"
+#include "html_host.h"
+#include "web_page.h"
+#include "http_requests_pool.h"
+#include "web_history.h"
 
 class browser_window;
 
-class html_widget :		public Gtk::DrawingArea,
-						public container_linux
+enum page_state
 {
-	litehtml::string			m_url;
-	litehtml::string			m_base_url;
-	litehtml::document::ptr		m_html;
-	int							m_rendered_width;
-	litehtml::string			m_cursor;
-	litehtml::string			m_clicked_url;
-	browser_window*				m_browser;
-	http_loader					m_http;
-    std::string                 m_hash;
-    bool                        m_hash_valid;
-public:
-	html_widget(browser_window* browser);
-	virtual ~html_widget();
+	page_state_has_back = 0x01,
+	page_state_has_forward = 0x02,
+	page_state_downloading = 0x04,
+};
 
-	void open_page(const litehtml::string& url, const litehtml::string& hash);
-	void show_hash(const litehtml::string& hash);
-    void dump(const litehtml::string& file_name);
-	void update_cursor();
+class html_widget :		public Gtk::DrawingArea,
+						public litebrowser::html_host_interface
+{
+	int m_rendered_width;
+	browser_window* m_browser;
+	std::mutex m_page_mutex;
+	std::shared_ptr<litebrowser::web_page> m_current_page;
+	std::shared_ptr<litebrowser::web_page> m_next_page;
+	web_history m_history;
+public:
+	explicit html_widget(browser_window* browser);
+	~html_widget() override;
+
+	void open_page(const litehtml::string& url, const litehtml::string& hash) override;
+	void update_cursor() override;
 	void on_parent_size_allocate(Gtk::Allocation allocation);
     void on_size_allocate(Gtk::Allocation& allocation) override;
+	void redraw() override;
+	void redraw_rect(int x, int y, int width, int height) override;
+	int get_render_width() override;
+	void on_page_loaded() override;
+	void dump(const litehtml::string& file_name);
+	void open_url(const std::string& url) override;
+	void render() override;
+	void queue_action(litebrowser::html_host_interface::q_action action) override;
+	void go_forward();
+	void go_back();
+	uint32_t get_state();
+	void stop_download();
+	void reload();
+	browser_window* browser() const { return m_browser; }
 
     long render_measure(int number);
     long draw_measure(int number);
+	void show_hash(const std::string& hash);
+	bool on_close(GdkEventAny* event);
 
 protected:
 	bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
-	void scroll_to(int x, int y);
+	void scroll_to(int x, int y) override;
 
 	void get_client_rect(litehtml::position& client) const override;
-	void on_anchor_click(const char* url, const litehtml::element::ptr& el) override;
-	void set_cursor(const char* cursor) override;
-	void import_css(litehtml::string& text, const litehtml::string& url, litehtml::string& baseurl) override;
 	void set_caption(const char* caption) override;
-	void set_base_url(const char* base_url) override;
-	Glib::RefPtr<Gdk::Pixbuf>	get_image(const char* url, bool redraw_on_ready) override;
-	void make_url( const char* url, const char* basepath, litehtml::string& out ) override;
 
 	bool on_button_press_event(GdkEventButton* event) override;
 	bool on_button_release_event(GdkEventButton* event) override;
@@ -53,6 +68,10 @@ protected:
 	void on_parent_changed(Gtk::Widget* previous_parent) override;
 
 private:
-	void load_text_file(const litehtml::string& url, litehtml::string& out);
+	std::shared_ptr<litebrowser::web_page> current_page()
+	{
+		std::lock_guard<std::mutex> lock(m_page_mutex);
+		return m_current_page;
+	}
 	Gtk::Allocation get_parent_allocation();
 };

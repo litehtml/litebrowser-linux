@@ -18,7 +18,7 @@ set(LITEBROWSER_PATH src)
 set(LITEHTML_PATH litehtml)
 set(CONTAINER_PATH ${LITEHTML_PATH}/containers/linux)
 
-pkg_check_modules(LB_LIBS REQUIRED fontconfig gdkmm-3.0 gtkmm-3.0 libcurl cairo pango pangocairo)
+pkg_check_modules(LB_LIBS REQUIRED gdkmm-3.0 gtkmm-3.0 libcurl cairo pango pangocairo)
 
 set(SOURCE  ${LITEBROWSER_PATH}/main.cpp
             ${LITEBROWSER_PATH}/html_widget.cpp
@@ -26,6 +26,9 @@ set(SOURCE  ${LITEBROWSER_PATH}/main.cpp
             ${LITEBROWSER_PATH}/browser_wnd.cpp
             ${LITEBROWSER_PATH}/web_history.cpp
             ${CONTAINER_PATH}/cairo_borders.cpp
+            ${LITEBROWSER_PATH}/http_request.cpp
+            ${LITEBROWSER_PATH}/web_page.cpp
+            ${LITEBROWSER_PATH}/http_requests_pool.cpp
     )
 
 set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
@@ -34,7 +37,12 @@ set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
             ${CONTAINER_PATH}/container_linux.h
             ${CONTAINER_PATH}/cairo_borders.h
             ${LITEBROWSER_PATH}/web_history.h
-    )
+            ${LITEBROWSER_PATH}/http_request.h
+            ${LITEBROWSER_PATH}/web_page.h
+            ${LITEBROWSER_PATH}/html_host.h
+            ${LITEBROWSER_PATH}/http_requests_pool.h
+            ${LITEBROWSER_PATH}/html_dumper.h
+        )
 
 option(LITEHTML_BUILD_TESTING "enable testing for litehtml" OFF)
 add_subdirectory(${LITEHTML_PATH})
@@ -42,7 +50,7 @@ add_subdirectory(${LITEHTML_PATH})
 # additional warnings
 add_compile_options(-Wall -Wextra -Wpedantic)
 
-add_executable(${PROJECT_NAME} ${SOURCE} ${HEADERS} src/http_loader.h src/http_loader.cpp)
+add_executable(${PROJECT_NAME} ${SOURCE} ${HEADERS})
 include_directories(${PROJECT_NAME} ${LITEHTML_PATH}/include ${LB_LIBS_INCLUDE_DIRS})
 target_link_options(${PROJECT_NAME} PRIVATE ${LB_LIBS_LDFLAGS})
 target_link_libraries(${PROJECT_NAME} litehtml ${LB_LIBS_LIBRARIES})

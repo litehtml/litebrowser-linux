@@ -20,11 +20,7 @@
 #include <gtkmm/application.h>
 #include <gtkmm/window.h>
 #include "../litehtml/include/litehtml.h"
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include <fontconfig/fontconfig.h>
 #include <cairo-ft.h>
 #include <gdk/gdk.h>
 #include <cairomm/context.h>
 #include <curl/curl.h>
-#include <Poco/URI.h>

@@ -9,15 +9,17 @@ struct
     const char* url;
 } g_bookmarks[] =
         {
+				{"Alexei Navalny (Wiki)", "https://en.wikipedia.org/wiki/Alexei_Navalny?useskin=vector"},
                 {"litehtml Web Site", "http://www.litehtml.com/"},
                 {"True Launch Bar", "http://www.truelaunchbar.com/"},
                 {"Tordex", "http://www.tordex.com/"},
                 {"Obama (Wiki)", "https://en.wikipedia.org/wiki/Barack_Obama?useskin=vector"},
-                {"Elizabeth II", "https://en.wikipedia.org/wiki/Elizabeth_II?useskin=vector"},
-                {"std::vector", "https://en.cppreference.com/w/cpp/container/vector"},
+                {"Elizabeth II (Wiki)", "https://en.wikipedia.org/wiki/Elizabeth_II?useskin=vector"},
+				{"std::vector", "https://en.cppreference.com/w/cpp/container/vector"},
         };
 
-browser_window::browser_window() :
+browser_window::browser_window(const std::string& url) :
+		m_prev_state(0),
         m_html(this),
 
         m_tools_render1("Single Render"),
@@ -50,6 +52,16 @@ browser_window::browser_window() :
     m_forward_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_forward_clicked) );
     m_forward_button.set_image_from_icon_name("go-next-symbolic", Gtk::ICON_SIZE_BUTTON);
 
+	m_header.pack_start(m_stop_reload_button);
+	m_stop_reload_button.show();
+	m_stop_reload_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_stop_reload_clicked) );
+	m_stop_reload_button.set_image_from_icon_name("view-refresh-symbolic", Gtk::ICON_SIZE_BUTTON);
+
+	m_header.pack_start(m_home_button);
+	m_home_button.show();
+	m_home_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_home_clicked) );
+	m_home_button.set_image_from_icon_name("go-home-symbolic", Gtk::ICON_SIZE_BUTTON);
+
 	m_header.set_custom_title(m_address_bar);
 	m_address_bar.set_hexpand_set(true);
 	m_address_bar.set_hexpand();
@@ -70,7 +82,7 @@ browser_window::browser_window() :
 		m_menu_bookmarks.append(m_menu_items.back());
 		m_menu_items.back().signal_activate().connect(
 				sigc::bind(
-						sigc::mem_fun(*this, &browser_window::open_url),
+						sigc::mem_fun(m_html, &html_widget::open_url),
 						litehtml::string(url.url)));
 	}
 	m_menu_bookmarks.show_all();
@@ -138,7 +150,15 @@ browser_window::browser_window() :
 	m_scrolled_wnd.add(m_html);
 	m_html.show();
 
+	signal_delete_event().connect(sigc::mem_fun(m_html, &html_widget::on_close), false);
+
     set_default_size(1280, 720);
+
+	if(!url.empty())
+	{
+		m_html.open_url(url);
+	}
+
     update_buttons();
 }
 
@@ -150,7 +170,7 @@ browser_window::~browser_window()
 void browser_window::on_go_clicked()
 {
 	litehtml::string url = m_address_bar.get_text();
-	open_url(url);
+	m_html.open_url(url);
 }
 
 bool browser_window::on_address_key_press(GdkEventKey* event)
@@ -165,97 +185,51 @@ bool browser_window::on_address_key_press(GdkEventKey* event)
 	return false;
 }
 
-void browser_window::open_url(const litehtml::string &url)
-{
-    std::string hash;
-    std::string s_url = url;
-
-    m_address_bar.set_text(url);
-
-    std::string::size_type hash_pos = s_url.find_first_of(L'#');
-    if(hash_pos != std::wstring::npos)
-    {
-        hash = s_url.substr(hash_pos + 1);
-        s_url.erase(hash_pos);
-    }
-
-    bool open_hash_only = false;
-    bool reload = false;
-
-    auto current_url = m_history.current();
-    hash_pos = current_url.find_first_of(L'#');
-    if(hash_pos != std::wstring::npos)
-    {
-        current_url.erase(hash_pos);
-    }
-
-    if(!current_url.empty())
-    {
-        if(m_history.current() != url)
-        {
-            if (current_url == s_url)
-            {
-                open_hash_only = true;
-            }
-        } else
-        {
-            reload = true;
-        }
-    }
-    if(!open_hash_only)
-    {
-        m_html.open_page(url, hash);
-    } else
-    {
-        m_html.show_hash(hash);
-    }
-    if(!reload)
-    {
-        m_history.url_opened(url);
-    }
-    update_buttons();
-}
-
-void browser_window::set_url(const litehtml::string &url)
-{
-	m_address_bar.set_text(url);
-}
-
 void browser_window::on_forward_clicked()
 {
-    std::string url;
-    if(m_history.forward(url))
-    {
-        open_url(url);
-    }
+	m_html.go_forward();
 }
 
 void browser_window::on_back_clicked()
 {
-    std::string url;
-    if(m_history.back(url))
-    {
-        open_url(url);
-    }
+	m_html.go_back();
 }
 
 void browser_window::update_buttons()
 {
-    std::string url;
-    if(m_history.back(url))
-    {
-        m_back_button.set_state(Gtk::STATE_NORMAL);
-    } else
-    {
-        m_back_button.set_state(Gtk::STATE_INSENSITIVE);
-    }
-    if(m_history.forward(url))
-    {
-        m_forward_button.set_state(Gtk::STATE_NORMAL);
-    } else
-    {
-        m_forward_button.set_state(Gtk::STATE_INSENSITIVE);
-    }
+	uint32_t state = m_html.get_state();
+
+	if((m_prev_state & page_state_has_back) != (state & page_state_has_back))
+	{
+		if (state & page_state_has_back)
+		{
+			m_back_button.set_state(Gtk::STATE_NORMAL);
+		} else
+		{
+			m_back_button.set_state(Gtk::STATE_INSENSITIVE);
+		}
+	}
+	if((m_prev_state & page_state_has_forward) != (state & page_state_has_forward))
+	{
+		if (state & page_state_has_forward)
+		{
+			m_forward_button.set_state(Gtk::STATE_NORMAL);
+		} else
+		{
+			m_forward_button.set_state(Gtk::STATE_INSENSITIVE);
+		}
+	}
+	if((m_prev_state & page_state_downloading) != (state & page_state_downloading))
+	{
+		if (state & page_state_downloading)
+		{
+			m_stop_reload_button.set_image_from_icon_name("process-stop-symbolic");
+		} else
+		{
+			m_stop_reload_button.set_image_from_icon_name("view-refresh-symbolic");
+		}
+	}
+	m_prev_state = state;
 }
 
 void browser_window::on_render_measure(int number)
@@ -291,4 +265,21 @@ void browser_window::on_draw_measure(int number)
 void browser_window::on_dump()
 {
     m_html.dump("/tmp/litehtml-dump.txt");
+}
+
+void browser_window::on_stop_reload_clicked()
+{
+	uint32_t state = m_html.get_state();
+	if(state & page_state_downloading)
+	{
+		m_html.stop_download();
+	} else
+	{
+		m_html.reload();
+	}
+}
+
+void browser_window::on_home_clicked()
+{
+	m_html.open_url("http://www.litehtml.com/");
 }
