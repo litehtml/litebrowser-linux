@@ -50,6 +50,46 @@ namespace litebrowser
 		bool redraw_only() const { return m_redraw_on_ready; }
 	};
 
+	class cairo_surface_wrapper
+	{
+		cairo_surface_t* surface;
+	public:
+		cairo_surface_wrapper() : surface(nullptr) {}
+		cairo_surface_wrapper(cairo_surface_wrapper& v) : surface(v.surface)
+		{
+			if(v.surface)
+			{
+				surface = cairo_surface_reference(v.surface);
+			}
+		}
+		explicit cairo_surface_wrapper(cairo_surface_t* v) : surface(v) {}
+		cairo_surface_wrapper(cairo_surface_wrapper&& v) noexcept
+		{
+			surface = v.surface;
+			v.surface = nullptr;
+		}
+		cairo_surface_wrapper& operator=(const cairo_surface_wrapper& v)
+		{
+			if(surface != v.surface)
+			{
+				if(surface)
+				{
+					cairo_surface_destroy(surface);
+				}
+				surface = cairo_surface_reference(v.surface);
+			}
+			return *this;
+		}
+		~cairo_surface_wrapper()
+		{
+			if(surface)
+			{
+				cairo_surface_destroy(surface);
+			}
+		}
+		cairo_surface_t* get() { return cairo_surface_reference(surface); }
+	};
+
 	class web_page : 	public container_linux,
 						public std::enable_shared_from_this<web_page>
 	{
@@ -62,7 +102,7 @@ namespace litebrowser
 		std::string                 m_hash;
 		html_host_interface*		m_html_host;
 		std::mutex					m_images_sync;
-		std::map<litehtml::string, Glib::RefPtr<Gdk::Pixbuf>> m_images;
+		std::map<litehtml::string, cairo_surface_wrapper> m_images;
 		litebrowser::http_requests_pool m_requests_pool;
 
 	public:
@@ -79,9 +119,10 @@ namespace litebrowser
 		void import_css(litehtml::string& text, const litehtml::string& url, litehtml::string& baseurl) override;
 		void set_caption(const char* caption) override;
 		void set_base_url(const char* base_url) override;
-		Glib::RefPtr<Gdk::Pixbuf> get_image(const std::string& url) override;
+		cairo_surface_t* get_image(const std::string& url) override;
 		void make_url( const char* url, const char* basepath, litehtml::string& out ) override;
 		void load_image(const char* src, const char* baseurl, bool redraw_on_ready) override;
+		static cairo_surface_wrapper surface_from_pixbuf(const Glib::RefPtr<Gdk::Pixbuf>& bmp);
 
 		void show_hash(const litehtml::string& hash);
 		void show_hash_and_reset()

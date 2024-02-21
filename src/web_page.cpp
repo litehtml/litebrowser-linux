@@ -92,15 +92,15 @@ void litebrowser::web_page::set_base_url(const char* base_url)
 	}
 }
 
-Glib::RefPtr<Gdk::Pixbuf> litebrowser::web_page::get_image(const std::string& url)
+cairo_surface_t* litebrowser::web_page::get_image(const std::string& url)
 {
 	std::unique_lock<std::mutex> lock(m_images_sync);
 	auto img = m_images.find(url);
 	if(img != m_images.end())
 	{
-		return img->second;
+		return img->second.get();
 	}
-	return Glib::RefPtr<Gdk::Pixbuf>(nullptr);
+	return nullptr;
 }
 
 void litebrowser::web_page::show_hash(const litehtml::string& hash)
@@ -258,7 +258,7 @@ void litebrowser::web_page::on_image_downloaded(std::shared_ptr<image_file> data
 		{
 			{
 				std::unique_lock<std::mutex> lock(m_images_sync);
-				m_images[data->url()] = ptr;
+				m_images[data->url()] = surface_from_pixbuf(ptr);
 			}
 			if(data->redraw_only())
 			{
@@ -285,7 +285,7 @@ void litebrowser::web_page::load_image(const char *src, const char *baseurl, boo
 			return;
 		} else
 		{
-			m_images[url] = Glib::RefPtr<Gdk::Pixbuf>(nullptr);
+			m_images[url] = cairo_surface_wrapper();
 		}
 	}
 
@@ -293,6 +293,26 @@ void litebrowser::web_page::load_image(const char *src, const char *baseurl, boo
 	auto cb_on_data = std::bind(&image_file::on_data, data, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 	auto cb_on_finish = std::bind(&web_page::on_image_downloaded, this, data, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 	http_request(url, cb_on_data, cb_on_finish);
+}
+
+litebrowser::cairo_surface_wrapper litebrowser::web_page::surface_from_pixbuf(const Glib::RefPtr<Gdk::Pixbuf>& bmp)
+{
+	cairo_surface_t* ret;
+
+	if(bmp->get_has_alpha())
+	{
+		ret = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, bmp->get_width(), bmp->get_height());
+	} else
+	{
+		ret = cairo_image_surface_create(CAIRO_FORMAT_RGB24, bmp->get_width(), bmp->get_height());
+	}
+
+	Cairo::RefPtr<Cairo::Surface> surface(new Cairo::Surface(ret, false));
+	Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create(surface);
+	Gdk::Cairo::set_source_pixbuf(ctx, bmp, 0.0, 0.0);
+	ctx->paint();
+
+	return cairo_surface_wrapper(ret);
 }
 
 void litebrowser::web_page::http_request(const std::string &url,
