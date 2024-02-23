@@ -1,7 +1,7 @@
 #ifndef LITEBROWSER_WEB_PAGE_H
 #define LITEBROWSER_WEB_PAGE_H
 
-#include "../litehtml/containers/linux/cairo_pango.h"
+#include "../litehtml/containers/cairo/container_cairo_pango.h"
 #include <gtkmm.h>
 #include "html_host.h"
 #include "http_requests_pool.h"
@@ -91,7 +91,7 @@ namespace litebrowser
 		cairo_surface_t* get() { return cairo_surface_reference(surface); }
 	};
 
-	class web_page : 	public cairo_pango,
+	class web_page : 	public container_cairo_pango,
 						public std::enable_shared_from_this<web_page>
 	{
 		litehtml::string			m_url;
