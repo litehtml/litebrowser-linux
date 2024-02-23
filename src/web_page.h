@@ -1,7 +1,8 @@
 #ifndef LITEBROWSER_WEB_PAGE_H
 #define LITEBROWSER_WEB_PAGE_H
 
-#include "../litehtml/containers/linux/container_linux.h"
+#include "../litehtml/containers/linux/cairo_pango.h"
+#include <gtkmm.h>
 #include "html_host.h"
 #include "http_requests_pool.h"
 
@@ -90,7 +91,7 @@ namespace litebrowser
 		cairo_surface_t* get() { return cairo_surface_reference(surface); }
 	};
 
-	class web_page : 	public container_linux,
+	class web_page : 	public cairo_pango,
 						public std::enable_shared_from_this<web_page>
 	{
 		litehtml::string			m_url;
@@ -123,6 +124,15 @@ namespace litebrowser
 		void make_url( const char* url, const char* basepath, litehtml::string& out ) override;
 		void load_image(const char* src, const char* baseurl, bool redraw_on_ready) override;
 		static cairo_surface_wrapper surface_from_pixbuf(const Glib::RefPtr<Gdk::Pixbuf>& bmp);
+		double get_screen_dpi() const override;
+		int get_screen_width() const override
+		{
+			return Gdk::screen_width();
+		}
+		int get_screen_height() const override
+		{
+			return Gdk::screen_height();
+		}
 
 		void show_hash(const litehtml::string& hash);
 		void show_hash_and_reset()
