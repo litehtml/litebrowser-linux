@@ -16,34 +16,34 @@ set(CMAKE_C_FLAGS_RELEASE "-O3")
 
 set(LITEBROWSER_PATH src)
 set(LITEHTML_PATH litehtml)
-set(CONTAINER_PATH ${LITEHTML_PATH}/containers/linux)
+set(CONTAINER_PATH ${LITEHTML_PATH}/containers/cairo)
 
 pkg_check_modules(LB_LIBS REQUIRED gdkmm-3.0 gtkmm-3.0 libcurl cairo pango pangocairo)
 
 set(SOURCE  ${LITEBROWSER_PATH}/main.cpp
             ${LITEBROWSER_PATH}/html_widget.cpp
-            ${CONTAINER_PATH}/container_linux.cpp
             ${LITEBROWSER_PATH}/browser_wnd.cpp
             ${LITEBROWSER_PATH}/web_history.cpp
-            ${CONTAINER_PATH}/cairo_borders.cpp
-            ${CONTAINER_PATH}/cairo_pango.cpp
             ${LITEBROWSER_PATH}/http_request.cpp
             ${LITEBROWSER_PATH}/web_page.cpp
             ${LITEBROWSER_PATH}/http_requests_pool.cpp
+            ${CONTAINER_PATH}/container_cairo.cpp
+            ${CONTAINER_PATH}/cairo_borders.cpp
+            ${CONTAINER_PATH}/container_cairo_pango.cpp
     )
 
 set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
             ${LITEBROWSER_PATH}/html_widget.h
             ${LITEBROWSER_PATH}/globals.h
-            ${CONTAINER_PATH}/container_linux.h
-            ${CONTAINER_PATH}/cairo_borders.h
-            ${CONTAINER_PATH}/cairo_pango.h
             ${LITEBROWSER_PATH}/web_history.h
             ${LITEBROWSER_PATH}/http_request.h
             ${LITEBROWSER_PATH}/web_page.h
             ${LITEBROWSER_PATH}/html_host.h
             ${LITEBROWSER_PATH}/http_requests_pool.h
             ${LITEBROWSER_PATH}/html_dumper.h
+            ${CONTAINER_PATH}/container_cairo.h
+            ${CONTAINER_PATH}/cairo_borders.h
+            ${CONTAINER_PATH}/container_cairo_pango.h
         )
 
 option(LITEHTML_BUILD_TESTING "enable testing for litehtml" OFF)
