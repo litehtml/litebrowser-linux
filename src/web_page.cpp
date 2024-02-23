@@ -327,6 +327,12 @@ void litebrowser::web_page::on_pool_update_state()
 	m_html_host->queue_action(html_host_interface::queue_action_update_state);
 }
 
+double litebrowser::web_page::get_screen_dpi() const
+{
+	GdkScreen* screen = gdk_screen_get_default();
+	return gdk_screen_get_resolution(screen);
+}
+
 //////////////////////////////////////////////////////////
 
 litebrowser::image_file::image_file(std::string url, bool redraw_on_ready) :

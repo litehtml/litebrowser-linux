@@ -26,6 +26,7 @@ set(SOURCE  ${LITEBROWSER_PATH}/main.cpp
             ${LITEBROWSER_PATH}/browser_wnd.cpp
             ${LITEBROWSER_PATH}/web_history.cpp
             ${CONTAINER_PATH}/cairo_borders.cpp
+            ${CONTAINER_PATH}/cairo_pango.cpp
             ${LITEBROWSER_PATH}/http_request.cpp
             ${LITEBROWSER_PATH}/web_page.cpp
             ${LITEBROWSER_PATH}/http_requests_pool.cpp
@@ -36,6 +37,7 @@ set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
             ${LITEBROWSER_PATH}/globals.h
             ${CONTAINER_PATH}/container_linux.h
             ${CONTAINER_PATH}/cairo_borders.h
+            ${CONTAINER_PATH}/cairo_pango.h
             ${LITEBROWSER_PATH}/web_history.h
             ${LITEBROWSER_PATH}/http_request.h
             ${LITEBROWSER_PATH}/web_page.h
