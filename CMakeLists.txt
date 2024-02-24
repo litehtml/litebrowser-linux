@@ -44,6 +44,7 @@ set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
             ${CONTAINER_PATH}/container_cairo.h
             ${CONTAINER_PATH}/cairo_borders.h
             ${CONTAINER_PATH}/container_cairo_pango.h
+            ${CONTAINER_PATH}/cairo_images_cache.h
         )
 
 option(LITEHTML_BUILD_TESTING "enable testing for litehtml" OFF)
@@ -53,7 +54,7 @@ add_subdirectory(${LITEHTML_PATH})
 add_compile_options(-Wall -Wextra -Wpedantic)
 
 add_executable(${PROJECT_NAME} ${SOURCE} ${HEADERS})
-include_directories(${PROJECT_NAME} ${LITEHTML_PATH}/include ${LB_LIBS_INCLUDE_DIRS})
+include_directories(${PROJECT_NAME} ${LITEHTML_PATH}/include ${LB_LIBS_INCLUDE_DIRS} ${CONTAINER_PATH})
 target_link_options(${PROJECT_NAME} PRIVATE ${LB_LIBS_LDFLAGS})
 target_link_libraries(${PROJECT_NAME} litehtml ${LB_LIBS_LIBRARIES})
 
