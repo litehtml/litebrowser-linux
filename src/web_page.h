@@ -1,10 +1,11 @@
 #ifndef LITEBROWSER_WEB_PAGE_H
 #define LITEBROWSER_WEB_PAGE_H
 
-#include "../litehtml/containers/cairo/container_cairo_pango.h"
+#include "container_cairo_pango.h"
 #include <gtkmm.h>
 #include "html_host.h"
 #include "http_requests_pool.h"
+#include "cairo_images_cache.h"
 
 namespace litebrowser
 {
@@ -51,46 +52,6 @@ namespace litebrowser
 		bool redraw_only() const { return m_redraw_on_ready; }
 	};
 
-	class cairo_surface_wrapper
-	{
-		cairo_surface_t* surface;
-	public:
-		cairo_surface_wrapper() : surface(nullptr) {}
-		cairo_surface_wrapper(cairo_surface_wrapper& v) : surface(v.surface)
-		{
-			if(v.surface)
-			{
-				surface = cairo_surface_reference(v.surface);
-			}
-		}
-		explicit cairo_surface_wrapper(cairo_surface_t* v) : surface(v) {}
-		cairo_surface_wrapper(cairo_surface_wrapper&& v) noexcept
-		{
-			surface = v.surface;
-			v.surface = nullptr;
-		}
-		cairo_surface_wrapper& operator=(const cairo_surface_wrapper& v)
-		{
-			if(surface != v.surface)
-			{
-				if(surface)
-				{
-					cairo_surface_destroy(surface);
-				}
-				surface = cairo_surface_reference(v.surface);
-			}
-			return *this;
-		}
-		~cairo_surface_wrapper()
-		{
-			if(surface)
-			{
-				cairo_surface_destroy(surface);
-			}
-		}
-		cairo_surface_t* get() { return cairo_surface_reference(surface); }
-	};
-
 	class web_page : 	public container_cairo_pango,
 						public std::enable_shared_from_this<web_page>
 	{
@@ -102,8 +63,7 @@ namespace litebrowser
 		litehtml::string			m_clicked_url;
 		std::string                 m_hash;
 		html_host_interface*		m_html_host;
-		std::mutex					m_images_sync;
-		std::map<litehtml::string, cairo_surface_wrapper> m_images;
+		cairo_images_cache			m_images;
 		litebrowser::http_requests_pool m_requests_pool;
 
 	public:
@@ -123,7 +83,7 @@ namespace litebrowser
 		cairo_surface_t* get_image(const std::string& url) override;
 		void make_url( const char* url, const char* basepath, litehtml::string& out ) override;
 		void load_image(const char* src, const char* baseurl, bool redraw_on_ready) override;
-		static cairo_surface_wrapper surface_from_pixbuf(const Glib::RefPtr<Gdk::Pixbuf>& bmp);
+		static cairo_surface_t* surface_from_pixbuf(const Glib::RefPtr<Gdk::Pixbuf>& bmp);
 		double get_screen_dpi() const override;
 		int get_screen_width() const override
 		{

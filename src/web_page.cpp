@@ -94,13 +94,7 @@ void litebrowser::web_page::set_base_url(const char* base_url)
 
 cairo_surface_t* litebrowser::web_page::get_image(const std::string& url)
 {
-	std::unique_lock<std::mutex> lock(m_images_sync);
-	auto img = m_images.find(url);
-	if(img != m_images.end())
-	{
-		return img->second.get();
-	}
-	return nullptr;
+	return m_images.get_image(url);
 }
 
 void litebrowser::web_page::show_hash(const litehtml::string& hash)
@@ -257,8 +251,7 @@ void litebrowser::web_page::on_image_downloaded(std::shared_ptr<image_file> data
 		if(ptr)
 		{
 			{
-				std::unique_lock<std::mutex> lock(m_images_sync);
-				m_images[data->url()] = surface_from_pixbuf(ptr);
+				m_images.add_image(data->url(), surface_from_pixbuf(ptr));
 			}
 			if(data->redraw_only())
 			{
@@ -277,25 +270,18 @@ void litebrowser::web_page::load_image(const char *src, const char *baseurl, boo
 	std::string url;
 	make_url(src, baseurl, url);
 
+	if(!m_images.exists(url))
 	{
-		std::unique_lock<std::mutex> lock(m_images_sync);
-		auto img = m_images.find(url);
-		if(img != m_images.end())
-		{
-			return;
-		} else
-		{
-			m_images[url] = cairo_surface_wrapper();
-		}
-	}
+		m_images.add_image(url, nullptr);
 
-	auto data = std::make_shared<image_file>(url, redraw_on_ready);
-	auto cb_on_data = std::bind(&image_file::on_data, data, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
-	auto cb_on_finish = std::bind(&web_page::on_image_downloaded, this, data, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
-	http_request(url, cb_on_data, cb_on_finish);
+		auto data = std::make_shared<image_file>(url, redraw_on_ready);
+		auto cb_on_data = std::bind(&image_file::on_data, data, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+		auto cb_on_finish = std::bind(&web_page::on_image_downloaded, this, data, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+		http_request(url, cb_on_data, cb_on_finish);
+	}
 }
 
-litebrowser::cairo_surface_wrapper litebrowser::web_page::surface_from_pixbuf(const Glib::RefPtr<Gdk::Pixbuf>& bmp)
+cairo_surface_t* litebrowser::web_page::surface_from_pixbuf(const Glib::RefPtr<Gdk::Pixbuf>& bmp)
 {
 	cairo_surface_t* ret;
 
@@ -312,7 +298,7 @@ litebrowser::cairo_surface_wrapper litebrowser::web_page::surface_from_pixbuf(co
 	Gdk::Cairo::set_source_pixbuf(ctx, bmp, 0.0, 0.0);
 	ctx->paint();
 
-	return cairo_surface_wrapper(ret);
+	return ret;
 }
 
 void litebrowser::web_page::http_request(const std::string &url,
