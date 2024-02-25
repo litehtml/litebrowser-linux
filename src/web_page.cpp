@@ -270,10 +270,8 @@ void litebrowser::web_page::load_image(const char *src, const char *baseurl, boo
 	std::string url;
 	make_url(src, baseurl, url);
 
-	if(!m_images.exists(url))
+	if(m_images.reserve(url))
 	{
-		m_images.add_image(url, nullptr);
-
 		auto data = std::make_shared<image_file>(url, redraw_on_ready);
 		auto cb_on_data = std::bind(&image_file::on_data, data, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 		auto cb_on_finish = std::bind(&web_page::on_image_downloaded, this, data, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
