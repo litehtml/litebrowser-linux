@@ -59,7 +59,7 @@ target_link_options(${PROJECT_NAME} PRIVATE ${LB_LIBS_LDFLAGS})
 target_link_libraries(${PROJECT_NAME} litehtml ${LB_LIBS_LIBRARIES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
-        CXX_STANDARD 11
+        CXX_STANDARD 17
         C_STANDARD 99
         )
 
