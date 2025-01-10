@@ -76,6 +76,7 @@ namespace litebrowser
 
 		void get_client_rect(litehtml::position& client) const override;
 		void on_anchor_click(const char* url, const litehtml::element::ptr& el) override;
+		void on_mouse_event(const litehtml::element::ptr& el, litehtml::mouse_event event) override;
 		void set_cursor(const char* cursor) override;
 		void import_css(litehtml::string& text, const litehtml::string& url, litehtml::string& baseurl) override;
 		void set_caption(const char* caption) override;

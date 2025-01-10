@@ -47,6 +47,10 @@ void litebrowser::web_page::on_anchor_click(const char* url, const litehtml::ele
 	}
 }
 
+void litebrowser::web_page::on_mouse_event(const litehtml::element::ptr&, litehtml::mouse_event)
+{
+}
+
 void litebrowser::web_page::set_cursor(const char* cursor)
 {
 	if(cursor)
