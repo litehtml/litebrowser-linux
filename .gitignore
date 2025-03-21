@@ -30,4 +30,5 @@ build/
 .settings
 .project
 .idea
+.vscode
 

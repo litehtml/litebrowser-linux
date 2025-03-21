@@ -1,5 +1,7 @@
-#include "globals.h"
 #include "browser_wnd.h"
+#ifdef FOR_TESTING
+#include "fonts.h"
+#endif
 
 int on_cmd(const Glib::RefPtr<Gio::ApplicationCommandLine> &, Glib::RefPtr<Gtk::Application> &app)
 {
@@ -8,16 +10,15 @@ int on_cmd(const Glib::RefPtr<Gio::ApplicationCommandLine> &, Glib::RefPtr<Gtk::
 }
 int main (int argc, char *argv[])
 {
-	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(argc, argv, "litehtml.browser", Gio::APPLICATION_HANDLES_COMMAND_LINE);
-
-    app->signal_command_line().connect(
-            sigc::bind(sigc::ptr_fun(on_cmd), app), false);
-
+#ifdef FOR_TESTING
+	prepare_fonts_for_testing();
+#endif
 	std::string url;
 	if(argc > 1)
 	{
 		url = argv[1];
 	}
-	browser_window win(url);
-	return app->run(win);
+	// Open the main window
+	auto app = Gtk::Application::create("litehtml.testsuite");
+	return app->make_window_and_run<browser_window>(argc, argv, app, url);
 }
