@@ -1,7 +1,6 @@
 #include <litehtml/url_path.h>
 #include <litehtml/url.h>
 #include "web_page.h"
-#include "html_dumper.h"
 
 void litebrowser::text_file::on_data(void* data, size_t len, size_t /*downloaded*/, size_t /*total*/)
 {
@@ -29,8 +28,8 @@ void litebrowser::web_page::open(const std::string &url, const std::string &hash
 	m_hash = hash;
 
 	auto data = std::make_shared<text_file>();
-	auto cb_on_data = std::bind(&text_file::on_data, data, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
-	auto cb_on_finish = std::bind(&web_page::on_page_downloaded, this, data, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+	auto cb_on_data = [data](auto && PH1, auto && PH2, auto && PH3, auto && PH4) mutable { data->on_data(std::forward<decltype(PH1)>(PH1), std::forward<decltype(PH2)>(PH2), std::forward<decltype(PH3)>(PH3), std::forward<decltype(PH4)>(PH4)); };
+	auto cb_on_finish = std::bind(&web_page::on_page_downloaded, shared_from_this(), data, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 	http_request(m_url, cb_on_data, cb_on_finish);
 }
 
@@ -99,7 +98,7 @@ cairo_surface_t* litebrowser::web_page::get_image(const std::string& url)
 
 void litebrowser::web_page::show_hash(const litehtml::string& hash)
 {
-	std::unique_lock<std::mutex> html_lock(m_html_mutex);
+	std::lock_guard<std::recursive_mutex> html_lock(m_html_mutex);
 	if(hash.empty() || !m_html)
 	{
 		m_html_host->scroll_to(0, 0);
@@ -139,32 +138,26 @@ void litebrowser::web_page::make_url(const char* url, const char* basepath, lite
 
 void litebrowser::web_page::on_mouse_over(int x, int y, int client_x, int client_y)
 {
-	std::unique_lock<std::mutex> html_lock(m_html_mutex);
+	std::lock_guard<std::recursive_mutex> html_lock(m_html_mutex);
 	if(m_html)
 	{
 		litehtml::position::vector redraw_boxes;
 		if(m_html->on_mouse_over(x, y, client_x, client_y, redraw_boxes))
 		{
-			for(auto& pos : redraw_boxes)
-			{
-				m_html_host->redraw_rect(pos.x, pos.y, pos.width, pos.height);
-			}
+			m_html_host->redraw_boxes(redraw_boxes);
 		}
 	}
 }
 
 void litebrowser::web_page::on_lbutton_down(int x, int y, int client_x, int client_y)
 {
-	std::unique_lock<std::mutex> html_lock(m_html_mutex);
+	std::lock_guard<std::recursive_mutex> html_lock(m_html_mutex);
 	if(m_html)
 	{
 		litehtml::position::vector redraw_boxes;
 		if(m_html->on_lbutton_down(x, y, client_x, client_y, redraw_boxes))
 		{
-			for(auto& pos : redraw_boxes)
-			{
-				m_html_host->redraw_rect(pos.x, pos.y, pos.width, pos.height);
-			}
+			m_html_host->redraw_boxes(redraw_boxes);
 		}
 	}
 }
@@ -174,16 +167,13 @@ void litebrowser::web_page::on_lbutton_up(int x, int y, int client_x, int client
 	if(m_html)
 	{
 		{
-			std::unique_lock<std::mutex> html_lock(m_html_mutex);
+			std::lock_guard<std::recursive_mutex> html_lock(m_html_mutex);
 
 			litehtml::position::vector redraw_boxes;
 			m_clicked_url.clear();
 			if (m_html->on_lbutton_up(x, y, client_x, client_y, redraw_boxes))
 			{
-				for (auto &pos: redraw_boxes)
-				{
-					m_html_host->redraw_rect(pos.x, pos.y, pos.width, pos.height);
-				}
+				m_html_host->redraw_boxes(redraw_boxes);
 			}
 		}
 		if(!m_clicked_url.empty())
@@ -201,36 +191,26 @@ void litebrowser::web_page::on_page_downloaded(std::shared_ptr<text_file> data,
 	if(err_code == 0)
 	{
 		m_url = url;
-		std::unique_lock<std::mutex> html_lock(m_html_mutex);
+		std::lock_guard<std::recursive_mutex> html_lock(m_html_mutex);
 		data->set_ready();
-		m_html = litehtml::document::createFromString(data->str().c_str(), this);
+		m_html_source = data->str();
 	} else
 	{
-		std::unique_lock<std::mutex> html_lock(m_html_mutex);
+		std::lock_guard<std::recursive_mutex> html_lock(m_html_mutex);
 		std::stringstream ss;
 		ss << "<h1>Impossible to load page</h1>" << std::endl;
 		ss << "<p>Error #" << err_code << ": " << err_text << "</p>" << std::endl;
-		m_html = litehtml::document::createFromString(ss.str().c_str(), this);
+		m_html_source = ss.str();
 	}
+
+	m_html = litehtml::document::createFromString(m_html_source, this);
 	if (m_html)
 	{
-		std::unique_lock<std::mutex> html_lock(m_html_mutex);
+		std::lock_guard<std::recursive_mutex> html_lock(m_html_mutex);
 		int render_width = m_html_host->get_render_width();
 		m_html->render(render_width);
 	}
-	m_html_host->on_page_loaded();
-}
-
-void litebrowser::web_page::dump(const litehtml::string& file_name)
-{
-	if(m_html)
-	{
-		std::unique_lock<std::mutex> html_lock(m_html_mutex);
-
-		html_dumper dumper(file_name);
-		m_html->dump(dumper);
-		dumper.print();
-	}
+	m_notify->on_page_loaded(id());
 }
 
 void litebrowser::web_page::on_image_downloaded(std::shared_ptr<image_file> data,
@@ -242,23 +222,16 @@ void litebrowser::web_page::on_image_downloaded(std::shared_ptr<image_file> data
 	data->close();
 	if(!data->path().empty() && !err_code && (http_status == 200 || http_status == 0))
 	{
-		Glib::RefPtr<Gdk::Pixbuf> ptr;
-
-		try
-		{
-			ptr = Gdk::Pixbuf::create_from_file(data->path());
-		} catch (...) {	}
+		auto ptr = m_html_host->load_image(data->path());
 		if(ptr)
 		{
-			{
-				m_images.add_image(data->url(), surface_from_pixbuf(ptr));
-			}
+			m_images.add_image(data->url(), ptr);
 			if(data->redraw_only())
 			{
-				m_html_host->queue_action(html_host_interface::queue_action_redraw);
+				m_notify->redraw();
 			} else
 			{
-				m_html_host->queue_action(html_host_interface::queue_action_render);
+				m_notify->render();
 			}
 		}
 	}
@@ -279,26 +252,6 @@ void litebrowser::web_page::load_image(const char *src, const char *baseurl, boo
 	}
 }
 
-cairo_surface_t* litebrowser::web_page::surface_from_pixbuf(const Glib::RefPtr<Gdk::Pixbuf>& bmp)
-{
-	cairo_surface_t* ret;
-
-	if(bmp->get_has_alpha())
-	{
-		ret = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, bmp->get_width(), bmp->get_height());
-	} else
-	{
-		ret = cairo_image_surface_create(CAIRO_FORMAT_RGB24, bmp->get_width(), bmp->get_height());
-	}
-
-	Cairo::RefPtr<Cairo::Surface> surface(new Cairo::Surface(ret, false));
-	Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create(surface);
-	Gdk::Cairo::set_source_pixbuf(ctx, bmp, 0.0, 0.0);
-	ctx->paint();
-
-	return ret;
-}
-
 void litebrowser::web_page::http_request(const std::string &url,
 										 const std::function<void(void *, size_t, size_t, size_t)> &cb_on_data,
 										 const std::function<void(u_int32_t, u_int32_t, const std::string &, const std::string &)> &cb_on_finish)
@@ -308,19 +261,32 @@ void litebrowser::web_page::http_request(const std::string &url,
 
 void litebrowser::web_page::on_pool_update_state()
 {
-	m_html_host->queue_action(html_host_interface::queue_action_update_state);
+	m_notify->update_state();
 }
 
 double litebrowser::web_page::get_screen_dpi() const
 {
-	GdkScreen* screen = gdk_screen_get_default();
-	return gdk_screen_get_resolution(screen);
+	return m_html_host->get_dpi();
+}
+
+int litebrowser::web_page::get_screen_width() const
+{
+    return m_html_host->get_screen_width();
+}
+
+int litebrowser::web_page::get_screen_height() const
+{
+    return m_html_host->get_screen_height();
+}
+
+void litebrowser::web_page::on_mouse_event(const litehtml::element::ptr& /*el*/, litehtml::mouse_event /*event*/)
+{
+
 }
 
 //////////////////////////////////////////////////////////
 
 litebrowser::image_file::image_file(std::string url, bool redraw_on_ready) :
-			m_fd(-1),
 			m_url(std::move(url)),
 			m_redraw_on_ready(redraw_on_ready)
 {

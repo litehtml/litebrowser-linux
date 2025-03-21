@@ -1,16 +1,5 @@
-#include "globals.h"
 #include "web_history.h"
 
-
-web_history::web_history()
-{
-	m_current_item = 0;
-}
-
-web_history::~web_history()
-{
-
-}
 
 void web_history::url_opened( const std::string& url )
 {
@@ -35,7 +24,7 @@ void web_history::url_opened( const std::string& url )
 			if(m_current_item > 0 && m_items[m_current_item - 1] == url)
 			{
 				m_current_item--;
-			} else 
+			} else
 			{
 				m_items.push_back(url);
 				m_current_item = m_items.size() - 1;
@@ -51,7 +40,7 @@ void web_history::url_opened( const std::string& url )
 bool web_history::back( std::string& url )
 {
 	if(m_items.empty())	return false;
-	
+
 	if(m_current_item > 0)
 	{
 		url = m_items[m_current_item - 1];

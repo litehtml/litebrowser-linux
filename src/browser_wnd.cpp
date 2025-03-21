@@ -1,7 +1,8 @@
-#include "globals.h"
 #include "browser_wnd.h"
 #include <gdk/gdkkeysyms.h>
 #include <sstream>
+#include <gtkmm.h>
+#include "html_dumper.h"
 
 struct
 {
@@ -16,141 +17,170 @@ struct
                 {"Obama (Wiki)", "https://en.wikipedia.org/wiki/Barack_Obama?useskin=vector"},
                 {"Elizabeth II (Wiki)", "https://en.wikipedia.org/wiki/Elizabeth_II?useskin=vector"},
 				{"std::vector", "https://en.cppreference.com/w/cpp/container/vector"},
+				{"BinaryTides", "https://www.binarytides.com/"},
+				{"Ubuntu Forums", "https://ubuntuforums.org/"},
         };
 
-browser_window::browser_window(const std::string& url) :
-		m_prev_state(0),
-        m_html(this),
-
-        m_tools_render1("Single Render"),
-        m_tools_render10("Render 10 Times"),
-        m_tools_render100("Render 100 Times"),
-
-        m_tools_draw1("Single Draw"),
-        m_tools_draw10("Draw 10 Times"),
-        m_tools_draw100("Draw 100 Times"),
-
-        m_tools_dump("Dump parsed HTML")
+static inline void mk_button(Gtk::Button& btn, const std::string& label_text, const std::string& icon_name)
 {
-	add(m_vbox);
-	m_vbox.show();
+	btn.set_focusable(false);
+
+	auto icon = Gtk::make_managed<Gtk::Image>();
+	icon->set_from_icon_name(icon_name);
+	icon->set_icon_size(Gtk::IconSize::NORMAL);
+	icon->set_expand(true);
+
+	auto hbox = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL);
+	hbox->append(*icon);
+	hbox->set_expand(false);
+
+	btn.set_child(*hbox);
+	btn.set_tooltip_text(label_text);
+}
+
+browser_window::browser_window(const Glib::RefPtr<Gio::Application>& app, const std::string& url) :
+		m_prev_state(0)
+{
+	set_child(m_vbox);
 
 	set_titlebar(m_header);
 
 	m_header.show();
 
-	m_header.set_show_close_button(true);
-	m_header.property_spacing().set_value(0);
+	m_header.set_show_title_buttons(false);
 
-	m_header.pack_start(m_back_button);
-    m_back_button.show();
+	auto title_box	= Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL);
+	auto left_box	= Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 5);
+	auto right_box	= Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 5);
+
+	left_box->append(m_back_button);
+	mk_button(m_back_button, "Go Back", "go-previous-symbolic");
     m_back_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_back_clicked) );
-    m_back_button.set_image_from_icon_name("go-previous-symbolic", Gtk::ICON_SIZE_BUTTON);
 
-	m_header.pack_start(m_forward_button);
-    m_forward_button.show();
+	left_box->append(m_forward_button);
+	mk_button(m_forward_button, "Go Forward", "go-next-symbolic");
+	m_forward_button.set_margin_end(10);
     m_forward_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_forward_clicked) );
-    m_forward_button.set_image_from_icon_name("go-next-symbolic", Gtk::ICON_SIZE_BUTTON);
 
-	m_header.pack_start(m_stop_reload_button);
-	m_stop_reload_button.show();
+	left_box->append(m_stop_reload_button);
+	mk_button(m_stop_reload_button, "Reload Page", "view-refresh-symbolic");
 	m_stop_reload_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_stop_reload_clicked) );
-	m_stop_reload_button.set_image_from_icon_name("view-refresh-symbolic", Gtk::ICON_SIZE_BUTTON);
 
-	m_header.pack_start(m_home_button);
-	m_home_button.show();
+	left_box->append(m_home_button);
+	mk_button(m_home_button, "Go Home", "go-home-symbolic");
 	m_home_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_home_clicked) );
-	m_home_button.set_image_from_icon_name("go-home-symbolic", Gtk::ICON_SIZE_BUTTON);
 
-	m_header.set_custom_title(m_address_bar);
-	m_address_bar.set_hexpand_set(true);
-	m_address_bar.set_hexpand();
-	m_address_bar.property_primary_icon_name().set_value("document-open-symbolic");
-	m_address_bar.set_margin_start(32);
+	left_box->set_hexpand(false);
+	title_box->append(*left_box);
 
-	m_address_bar.show();
+	title_box->append(m_address_bar);
+	m_address_bar.set_hexpand(true);
+	m_address_bar.set_halign(Gtk::Align::FILL);
+	m_address_bar.set_margin_start(20);
+	m_address_bar.set_margin_end(3);
+	m_address_bar.signal_activate().connect(sigc::mem_fun(*this, &browser_window::on_go_clicked));
+	m_address_bar.property_primary_icon_name().set_value("insert-link-symbolic");
 	m_address_bar.set_text("http://www.litehtml.com/");
 
-	m_address_bar.add_events(Gdk::KEY_PRESS_MASK);
-	m_address_bar.signal_key_press_event().connect( sigc::mem_fun(*this, &browser_window::on_address_key_press), false );
 
-	m_menu_bookmarks.set_halign(Gtk::ALIGN_END);
+	right_box->append(m_go_button);
+	mk_button(m_go_button, "Go", "media-playback-start-symbolic");
+	m_go_button.set_margin_end(20);
+	m_go_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_go_clicked) );
+
+	// Creating bookmarks popover
+	auto menu_model = Gio::Menu::create();
 
 	for(const auto& url : g_bookmarks)
 	{
-		m_menu_items.emplace_back(url.name);
-		m_menu_bookmarks.append(m_menu_items.back());
-		m_menu_items.back().signal_activate().connect(
-				sigc::bind(
-						sigc::mem_fun(m_html, &html_widget::open_url),
-						litehtml::string(url.url)));
+		std::string action;
+		action += "app.open_url('";
+		action += url.url;
+		action += "')";
+		menu_model->append(url.name, action);
 	}
-	m_menu_bookmarks.show_all();
 
-	m_header.pack_end(m_tools_button);
-	m_tools_button.set_popup(m_menu_tools);
-	m_tools_button.show();
-	m_tools_button.set_image_from_icon_name("preferences-system-symbolic", Gtk::ICON_SIZE_BUTTON);
+	auto action = Gio::SimpleAction::create("open_url", Glib::VariantType("s"));
+	action->signal_activate().connect([this](const Glib::VariantBase& parameter) {
+        auto value = parameter.get_dynamic<std::string>();
+		m_html.open_url(value);
+		m_bookmarks_popover.popdown();
+	});
+	app->add_action(action);
 
-	m_header.pack_end(m_bookmarks_button);
-    m_bookmarks_button.set_popup(m_menu_bookmarks);
-    m_bookmarks_button.show();
-    m_bookmarks_button.set_image_from_icon_name("user-bookmarks-symbolic", Gtk::ICON_SIZE_BUTTON);
+	m_bookmarks_popover.set_menu_model(menu_model);
+	m_bookmarks_popover.set_has_arrow(true);
+	m_bookmarks_popover.set_parent(m_bookmarks_button);
 
-	m_go_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_go_clicked) );
-	m_go_button.set_margin_end(32);
+	right_box->append(m_bookmarks_button);
+	mk_button(m_bookmarks_button, "Bookmarks", "user-bookmarks-symbolic");
+	m_bookmarks_button.signal_clicked().connect( [this]() { m_bookmarks_popover.popup(); } );
 
-	m_header.pack_end(m_go_button);
-	m_go_button.show();
-	m_go_button.set_image_from_icon_name("media-playback-start-symbolic", Gtk::ICON_SIZE_BUTTON);
+	// Creating tools popover
+	menu_model = Gio::Menu::create();
+	auto section_render = Gio::Menu::create();
+	auto section_draw = Gio::Menu::create();
+	auto section_other = Gio::Menu::create();
 
-    m_menu_tools.set_halign(Gtk::ALIGN_END);
-    m_menu_tools.append(m_tools_render1);
-    m_menu_tools.append(m_tools_render10);
-    m_menu_tools.append(m_tools_render100);
-    m_menu_tools.append(m_tools_draw1);
-    m_menu_tools.append(m_tools_draw10);
-    m_menu_tools.append(m_tools_draw100);
-    m_menu_tools.append(m_tools_dump);
+	section_render->append("Single Render", "app.test_render(1)");
+	section_render->append("Render 10 Times", "app.test_render(10)");
+	section_render->append("Render 100 Times", "app.test_render(100)");
+	section_draw->append("Single Draw", "app.test_draw(1)");
+	section_draw->append("Draw 10 Times", "app.test_draw(10)");
+	section_draw->append("Draw 100 Times", "app.test_draw(100)");
+	section_other->append("Dump parsed HTML", "app.dump");
 
-    m_menu_tools.show_all();
+	menu_model->append_section(section_render);
+	menu_model->append_section(section_draw);
+	menu_model->append_section(section_other);
 
-    m_tools_render1.signal_activate().connect(
-            sigc::bind(
-                    sigc::mem_fun(*this, &browser_window::on_render_measure),
-                    1));
-    m_tools_render10.signal_activate().connect(
-            sigc::bind(
-                    sigc::mem_fun(*this, &browser_window::on_render_measure),
-                    10));
-    m_tools_render100.signal_activate().connect(
-            sigc::bind(
-                    sigc::mem_fun(*this, &browser_window::on_render_measure),
-                    100));
+	m_tools_popover.set_menu_model(menu_model);
+	m_tools_popover.set_has_arrow(true);
+	m_tools_popover.set_parent(m_tools_button);
 
-    m_tools_draw1.signal_activate().connect(
-            sigc::bind(
-                    sigc::mem_fun(*this, &browser_window::on_draw_measure),
-                    1));
-    m_tools_draw10.signal_activate().connect(
-            sigc::bind(
-                    sigc::mem_fun(*this, &browser_window::on_draw_measure),
-                    10));
-    m_tools_draw100.signal_activate().connect(
-            sigc::bind(
-                    sigc::mem_fun(*this, &browser_window::on_draw_measure),
-                    100));
+	action = Gio::SimpleAction::create("test_render", Glib::VariantType("i"));
+	action->signal_activate().connect([this](const Glib::VariantBase& parameter) {
+        auto value = parameter.get_dynamic<int>();
+		on_render_measure(value);
+		m_bookmarks_popover.popdown();
+	});
+	app->add_action(action);
 
-    m_tools_dump.signal_activate().connect(
-            sigc::mem_fun(*this, &browser_window::on_dump));
+	action = Gio::SimpleAction::create("test_draw", Glib::VariantType("i"));
+	action->signal_activate().connect([this](const Glib::VariantBase& parameter) {
+        auto value = parameter.get_dynamic<int>();
+		on_draw_measure(value);
+		m_bookmarks_popover.popdown();
+	});
+	app->add_action(action);
 
-    m_vbox.pack_start(m_scrolled_wnd, Gtk::PACK_EXPAND_WIDGET);
-	m_scrolled_wnd.show();
+	action = Gio::SimpleAction::create("dump");
+	action->signal_activate().connect([this](const Glib::VariantBase& /* parameter */) {
+		on_dump();
+		m_bookmarks_popover.popdown();
+	});
+	app->add_action(action);
 
-	m_scrolled_wnd.add(m_html);
-	m_html.show();
+	right_box->append(m_tools_button);
+	mk_button(m_tools_button, "Tools", "preferences-system-symbolic");
+	m_tools_button.signal_clicked().connect( [this]() { m_tools_popover.popup(); } );
 
-	signal_delete_event().connect(sigc::mem_fun(m_html, &html_widget::on_close), false);
+	auto win_ctls = Gtk::make_managed<Gtk::WindowControls>(Gtk::PackType::END);
+	right_box->append(*win_ctls);
+
+	title_box->append(*right_box);
+
+	title_box->set_halign(Gtk::Align::FILL);
+	title_box->set_hexpand(true);
+	m_header.set_title_widget(*title_box);
+	set_titlebar(m_header);
+
+    m_vbox.append(m_html);
+	m_html.set_expand(true);
+	m_html.signal_set_address().connect( sigc::mem_fun(*this, &browser_window::set_address) );
+	m_html.signal_update_state().connect( sigc::mem_fun(*this, &browser_window::update_buttons) );
+
+	signal_close_request().connect(sigc::mem_fun(m_html, &html_widget::on_close), false);
 
     set_default_size(1280, 720);
 
@@ -159,23 +189,25 @@ browser_window::browser_window(const std::string& url) :
 		m_html.open_url(url);
 	}
 
-    update_buttons();
+    update_buttons(0);
 }
 
 browser_window::~browser_window()
 {
-
+	m_bookmarks_popover.unparent();
+	m_tools_popover.unparent();
 }
 
 void browser_window::on_go_clicked()
 {
 	litehtml::string url = m_address_bar.get_text();
 	m_html.open_url(url);
+	m_html.grab_focus();
 }
 
-bool browser_window::on_address_key_press(GdkEventKey* event)
+bool browser_window::on_address_key_press(guint keyval, guint /*keycode*/, Gdk::ModifierType /*state*/)
 {
-	if(event->keyval == GDK_KEY_Return)
+	if(keyval == GDK_KEY_Return)
 	{
 		m_address_bar.select_region(0, -1);
 		on_go_clicked();
@@ -195,29 +227,17 @@ void browser_window::on_back_clicked()
 	m_html.go_back();
 }
 
-void browser_window::update_buttons()
+void browser_window::update_buttons(uint32_t)
 {
 	uint32_t state = m_html.get_state();
 
 	if((m_prev_state & page_state_has_back) != (state & page_state_has_back))
 	{
-		if (state & page_state_has_back)
-		{
-			m_back_button.set_state(Gtk::STATE_NORMAL);
-		} else
-		{
-			m_back_button.set_state(Gtk::STATE_INSENSITIVE);
-		}
+		m_back_button.set_sensitive(state & page_state_has_back);
 	}
 	if((m_prev_state & page_state_has_forward) != (state & page_state_has_forward))
 	{
-		if (state & page_state_has_forward)
-		{
-			m_forward_button.set_state(Gtk::STATE_NORMAL);
-		} else
-		{
-			m_forward_button.set_state(Gtk::STATE_INSENSITIVE);
-		}
+		m_forward_button.set_sensitive(state & page_state_has_forward);
 	}
 	if((m_prev_state & page_state_downloading) != (state & page_state_downloading))
 	{
@@ -240,11 +260,11 @@ void browser_window::on_render_measure(int number)
 
     message << time << " ms for " << number << " times rendering";
 
-    m_pDialog.reset(new Gtk::MessageDialog(*this, message.str(), false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_CLOSE, true));
-
-    m_pDialog->signal_response().connect(
-            sigc::hide(sigc::mem_fun(*m_pDialog, &Gtk::Widget::hide)));
-    m_pDialog->show();
+	auto dialog = Gtk::AlertDialog::create();
+	dialog->set_message(message.str());
+	dialog->set_buttons({"OK"});
+	dialog->set_modal(true);
+	dialog->show(*this);
 }
 
 void browser_window::on_draw_measure(int number)
@@ -255,16 +275,23 @@ void browser_window::on_draw_measure(int number)
 
     message << time << " ms for " << number << " times measure";
 
-    m_pDialog.reset(new Gtk::MessageDialog(*this, message.str(), false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_CLOSE, true));
-
-    m_pDialog->signal_response().connect(
-            sigc::hide(sigc::mem_fun(*m_pDialog, &Gtk::Widget::hide)));
-    m_pDialog->show();
+	auto dialog = Gtk::AlertDialog::create();
+	dialog->set_message(message.str());
+	dialog->set_buttons({"OK"});
+	dialog->set_modal(true);
+	dialog->show(*this);
 }
 
 void browser_window::on_dump()
 {
-    m_html.dump("/tmp/litehtml-dump.txt");
+	html_dumper cout("/tmp/litehtml-dump.txt");
+    m_html.dump(cout);
+	auto dialog = Gtk::AlertDialog::create();
+	dialog->set_message("File is saved");
+	dialog->set_detail("The parsed HTML tree was saved into he file: /tmp/litehtml-dump.txt");
+	dialog->set_buttons({"Close"});
+	dialog->set_modal(true);
+	dialog->show(*this);
 }
 
 void browser_window::on_stop_reload_clicked()

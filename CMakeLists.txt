@@ -5,8 +5,8 @@ project(litebrowser CXX)
 find_package(PkgConfig REQUIRED)
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    message(STATUS "No build type selected, default to Release")
-    set(CMAKE_BUILD_TYPE "Release")
+	message(STATUS "No build type selected, default to Release")
+	set(CMAKE_BUILD_TYPE "Release")
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
@@ -19,48 +19,53 @@ set(LITEBROWSER_PATH src)
 set(LITEHTML_PATH litehtml)
 set(CONTAINER_PATH ${LITEHTML_PATH}/containers/cairo)
 
-pkg_check_modules(LB_LIBS REQUIRED gdkmm-3.0 gtkmm-3.0 libcurl cairo pango pangocairo)
+pkg_check_modules(LB_LIBS REQUIRED gtkmm-4.0 libcurl cairo pango pangocairo)
 
 set(SOURCE  ${LITEBROWSER_PATH}/main.cpp
-            ${LITEBROWSER_PATH}/html_widget.cpp
-            ${LITEBROWSER_PATH}/browser_wnd.cpp
-            ${LITEBROWSER_PATH}/web_history.cpp
-            ${LITEBROWSER_PATH}/http_request.cpp
-            ${LITEBROWSER_PATH}/web_page.cpp
-            ${LITEBROWSER_PATH}/http_requests_pool.cpp
-            ${CONTAINER_PATH}/container_cairo.cpp
-            ${CONTAINER_PATH}/cairo_borders.cpp
-            ${CONTAINER_PATH}/container_cairo_pango.cpp
-    )
+			${LITEBROWSER_PATH}/widget/html_widget.cpp
+			${LITEBROWSER_PATH}/browser_wnd.cpp
+			${LITEBROWSER_PATH}/webpage/web_history.cpp
+			${LITEBROWSER_PATH}/webpage/http_request.cpp
+			${LITEBROWSER_PATH}/webpage/web_page.cpp
+			${LITEBROWSER_PATH}/webpage/http_requests_pool.cpp
+			${CONTAINER_PATH}/container_cairo.cpp
+			${CONTAINER_PATH}/cairo_borders.cpp
+			${CONTAINER_PATH}/container_cairo_pango.cpp
+	)
 
 set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
-            ${LITEBROWSER_PATH}/html_widget.h
-            ${LITEBROWSER_PATH}/globals.h
-            ${LITEBROWSER_PATH}/web_history.h
-            ${LITEBROWSER_PATH}/http_request.h
-            ${LITEBROWSER_PATH}/web_page.h
-            ${LITEBROWSER_PATH}/html_host.h
-            ${LITEBROWSER_PATH}/http_requests_pool.h
-            ${LITEBROWSER_PATH}/html_dumper.h
-            ${CONTAINER_PATH}/container_cairo.h
-            ${CONTAINER_PATH}/cairo_borders.h
-            ${CONTAINER_PATH}/container_cairo_pango.h
-            ${CONTAINER_PATH}/cairo_images_cache.h
-        )
+			${LITEBROWSER_PATH}/widget/html_widget.h
+			${LITEBROWSER_PATH}/webpage/web_history.h
+			${LITEBROWSER_PATH}/webpage/http_request.h
+			${LITEBROWSER_PATH}/webpage/web_page.h
+			${LITEBROWSER_PATH}/webpage/html_host.h
+			${LITEBROWSER_PATH}/webpage/http_requests_pool.h
+			${LITEBROWSER_PATH}/html_dumper.h
+			${CONTAINER_PATH}/container_cairo.h
+			${CONTAINER_PATH}/cairo_borders.h
+			${CONTAINER_PATH}/container_cairo_pango.h
+			${CONTAINER_PATH}/cairo_images_cache.h
+		)
 
-option(LITEHTML_BUILD_TESTING "enable testing for litehtml" OFF)
+if (FOR_TESTING)
+	set(HEADERS ${HEADERS} litehtml-tests/fonts.h)
+	set(SOURCE ${SOURCE} litehtml-tests/fonts.cpp)
+	pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
+	add_compile_options(-DFOR_TESTING)
+endif ()
+
 add_subdirectory(${LITEHTML_PATH})
 
 # additional warnings
 add_compile_options(-Wall -Wextra -Wpedantic)
 
 add_executable(${PROJECT_NAME} ${SOURCE} ${HEADERS})
-include_directories(${PROJECT_NAME} ${LITEHTML_PATH}/include ${LB_LIBS_INCLUDE_DIRS} ${CONTAINER_PATH})
-target_link_options(${PROJECT_NAME} PRIVATE ${LB_LIBS_LDFLAGS})
-target_link_libraries(${PROJECT_NAME} litehtml ${LB_LIBS_LIBRARIES})
+include_directories(${PROJECT_NAME} ${LITEHTML_PATH}/include ${LITEBROWSER_PATH}/webpage ${LITEBROWSER_PATH}/widget ${LB_LIBS_INCLUDE_DIRS} ${CONTAINER_PATH} litehtml-tests)
+target_link_options(${PROJECT_NAME} PRIVATE ${LB_LIBS_LDFLAGS} ${FONTCONFIG_LDFLAGS})
+target_link_libraries(${PROJECT_NAME} litehtml ${LB_LIBS_LIBRARIES} ${FONTCONFIG_LIBRARIES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
-        CXX_STANDARD 17
-        C_STANDARD 99
-        )
+		CXX_STANDARD 17
+		C_STANDARD 99
+		)
 

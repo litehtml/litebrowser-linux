@@ -1,8 +1,8 @@
 #ifndef LITEBROWSER_WEB_PAGE_H
 #define LITEBROWSER_WEB_PAGE_H
 
+#include <sstream>
 #include "container_cairo_pango.h"
-#include <gtkmm.h>
 #include "html_host.h"
 #include "http_requests_pool.h"
 #include "cairo_images_cache.h"
@@ -13,9 +13,9 @@ namespace litebrowser
 	{
 		std::mutex wait_mutex;
 		std::stringstream stream;
-		bool data_ready;
+		bool data_ready = false;
 	public:
-		text_file() : data_ready(false)
+		text_file()
 		{
 			wait_mutex.lock();
 		}
@@ -33,7 +33,7 @@ namespace litebrowser
 
 	class image_file
 	{
-		int m_fd;
+		int m_fd = -1;
 		std::string m_path;
 		std::string m_url;
 		bool m_redraw_on_ready;
@@ -47,30 +47,45 @@ namespace litebrowser
 				::close(m_fd);
 			}
 		}
-		const std::string& path() const { return m_path; }
+		[[nodiscard]]
+		const std::string &path() const { return m_path; }
+
+		[[nodiscard]]
 		const std::string& url() const { return m_url; }
+
+		[[nodiscard]]
 		bool redraw_only() const { return m_redraw_on_ready; }
 	};
 
 	class web_page : 	public container_cairo_pango,
 						public std::enable_shared_from_this<web_page>
 	{
-		litehtml::string			m_url;
-		litehtml::string			m_base_url;
-		litehtml::document::ptr		m_html;
-		std::mutex					m_html_mutex;
-		litehtml::string			m_cursor;
-		litehtml::string			m_clicked_url;
-		std::string                 m_hash;
-		html_host_interface*		m_html_host;
-		cairo_images_cache			m_images;
-		litebrowser::http_requests_pool m_requests_pool;
+		litehtml::string				m_url;
+		litehtml::string				m_base_url;
+		litehtml::document::ptr			m_html;
+		std::recursive_mutex			m_html_mutex;
+		litehtml::string				m_cursor;
+		litehtml::string				m_clicked_url;
+		std::string                 	m_hash;
+		html_host_interface*			m_html_host;
+		cairo_images_cache				m_images;
+		litebrowser::http_requests_pool	m_requests_pool;
+		std::string 					m_html_source;
+
+		std::shared_ptr<browser_notify_interface> m_notify;
 
 	public:
-		explicit web_page(html_host_interface* html_host, int pool_size) :
+		explicit web_page(html_host_interface* html_host, std::shared_ptr<browser_notify_interface> notify, int pool_size) :
 				m_html_host(html_host),
-				m_requests_pool(pool_size, std::bind(&web_page::on_pool_update_state, this))
+				m_requests_pool(pool_size, [this] { on_pool_update_state(); }),
+				m_notify(std::move(notify))
 		{}
+
+		[[nodiscard]]
+		uint64_t id() const { return (uint64_t)this; }
+
+		[[nodiscard]]
+		const std::string& get_html_source() const { return m_html_source; }
 
 		void open(const litehtml::string& url, const litehtml::string& hash);
 
@@ -83,16 +98,10 @@ namespace litebrowser
 		cairo_surface_t* get_image(const std::string& url) override;
 		void make_url( const char* url, const char* basepath, litehtml::string& out ) override;
 		void load_image(const char* src, const char* baseurl, bool redraw_on_ready) override;
-		static cairo_surface_t* surface_from_pixbuf(const Glib::RefPtr<Gdk::Pixbuf>& bmp);
+		void on_mouse_event(const litehtml::element::ptr& el, litehtml::mouse_event event) override;
 		double get_screen_dpi() const override;
-		int get_screen_width() const override
-		{
-			return Gdk::screen_width();
-		}
-		int get_screen_height() const override
-		{
-			return Gdk::screen_height();
-		}
+		int get_screen_width() const override;
+		int get_screen_height() const override;
 
 		void show_hash(const litehtml::string& hash);
 		void show_hash_and_reset()
@@ -107,34 +116,56 @@ namespace litebrowser
 		void on_mouse_over(int x, int y, int client_x, int client_y);
 		void on_lbutton_down(int x, int y, int client_x, int client_y);
 		void on_lbutton_up(int x, int y, int client_x, int client_y);
+
+		[[nodiscard]]
 		const std::string& get_cursor() const	{ return m_cursor; }
+
 		void draw(litehtml::uint_ptr hdc, int x, int y, const litehtml::position* clip)
 		{
-			std::unique_lock<std::mutex> html_lock(m_html_mutex);
+			std::lock_guard<std::recursive_mutex> html_lock(m_html_mutex);
 			if(m_html) m_html->draw(hdc, x, y, clip);
 		}
+
 		int render(int max_width)
 		{
-			std::unique_lock<std::mutex> html_lock(m_html_mutex);
+			std::lock_guard<std::recursive_mutex> html_lock(m_html_mutex);
 			return m_html ? m_html->render(max_width) : 0;
 		}
+
+		[[nodiscard]]
 		const std::string& url() const { return m_url; }
+
+		[[nodiscard]]
 		int width() const { return m_html ? m_html->width() : 0; }
+
+		[[nodiscard]]
 		int height() const { return m_html ? m_html->height() : 0; }
+
 		bool media_changed()
 		{
-			std::unique_lock<std::mutex> html_lock(m_html_mutex);
+			std::lock_guard<std::recursive_mutex> html_lock(m_html_mutex);
 			return m_html && m_html->media_changed();
 		}
+
 		void stop_loading()
 		{
 			m_requests_pool.stop();
 		}
+
+		[[nodiscard]]
 		bool is_downloading()
 		{
 			return m_requests_pool.is_downloading();
 		}
-		void dump(const litehtml::string& file_name);
+
+		void dump(litehtml::dumper& cout)
+		{
+			std::lock_guard<std::recursive_mutex> html_lock(m_html_mutex);
+			if(m_html)
+			{
+				m_html->dump(cout);
+			}
+		}
 	private:
 		void http_request(const std::string& url,
 						  const std::function<void(void* data, size_t len, size_t downloaded, size_t total)>& cb_on_data,
