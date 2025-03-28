@@ -24,17 +24,7 @@ struct
 static inline void mk_button(Gtk::Button& btn, const std::string& label_text, const std::string& icon_name)
 {
 	btn.set_focusable(false);
-
-	auto icon = Gtk::make_managed<Gtk::Image>();
-	icon->set_from_icon_name(icon_name);
-	icon->set_icon_size(Gtk::IconSize::NORMAL);
-	icon->set_expand(true);
-
-	auto hbox = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL);
-	hbox->append(*icon);
-	hbox->set_expand(false);
-
-	btn.set_child(*hbox);
+	btn.set_image_from_icon_name(icon_name);
 	btn.set_tooltip_text(label_text);
 }
 

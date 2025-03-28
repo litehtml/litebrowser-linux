@@ -244,7 +244,7 @@ public:
 			m_draw_buffer = nullptr;
 			if(m_width > 0 && m_height > 0)
 			{
-				m_draw_buffer = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
+				m_draw_buffer = cairo_image_surface_create(CAIRO_FORMAT_RGB24,
 					std::ceil((double) m_width * m_scale_factor),
 					std::ceil((double) m_height * m_scale_factor));
 			}
@@ -286,7 +286,7 @@ public:
 				int surface_shift_y = (int) std::floor((double) (m_top - top) * m_scale_factor);
 				//printf("[surface_shift] top:%d m_top:%d x:%d y:%d\n", top, m_top, surface_shift_x, surface_shift_y);
 
-				auto new_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, scaled_width, scaled_height);
+				auto new_surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24, scaled_width, scaled_height);
 				cairo_t* cr = cairo_create(new_surface);
 				cairo_rectangle(cr, (rec_clean.get_x() - left) * m_scale_factor - m_scale_factor,
 									(rec_clean.get_y() - top) * m_scale_factor - m_scale_factor,
@@ -350,6 +350,10 @@ public:
 			// Apply clip with scaled position to avoid artifacts
 			cairo_rectangle(cr, s_x, s_y, s_width, s_height);
 			cairo_clip(cr);
+
+			cairo_rectangle(cr, s_x, s_y, s_width, s_height);
+			cairo_set_source_rgb(cr, 1.0, 1.0, 1.0);
+			cairo_fill(cr);
 
 			// Apply scale for drawing
 			cairo_scale(cr, m_scale_factor, m_scale_factor);

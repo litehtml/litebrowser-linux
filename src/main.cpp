@@ -2,6 +2,7 @@
 #ifdef FOR_TESTING
 #include "fonts.h"
 #endif
+#include <adwaita.h>
 
 int on_cmd(const Glib::RefPtr<Gio::ApplicationCommandLine> &, Glib::RefPtr<Gtk::Application> &app)
 {
@@ -10,6 +11,7 @@ int on_cmd(const Glib::RefPtr<Gio::ApplicationCommandLine> &, Glib::RefPtr<Gtk::
 }
 int main (int argc, char *argv[])
 {
+	adw_init();
 #ifdef FOR_TESTING
 	prepare_fonts_for_testing();
 #endif
