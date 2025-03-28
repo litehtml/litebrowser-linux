@@ -19,7 +19,7 @@ set(LITEBROWSER_PATH src)
 set(LITEHTML_PATH litehtml)
 set(CONTAINER_PATH ${LITEHTML_PATH}/containers/cairo)
 
-pkg_check_modules(LB_LIBS REQUIRED gtkmm-4.0 libcurl cairo pango pangocairo)
+pkg_check_modules(LB_LIBS REQUIRED gtkmm-4.0 libcurl cairo pango pangocairo libadwaita-1)
 
 set(SOURCE  ${LITEBROWSER_PATH}/main.cpp
 			${LITEBROWSER_PATH}/widget/html_widget.cpp
