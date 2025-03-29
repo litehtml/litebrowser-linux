@@ -423,6 +423,7 @@ void html_widget::size_allocate_vfunc(int width, int height, int /* baseline */)
 		queue_draw();
 	} else
 	{
+		m_draw_buffer.on_size_allocate(page, width, height);
 		m_rendered_width = width;
 	}
 
@@ -589,7 +590,7 @@ void html_widget::on_page_loaded(uint64_t web_page_id)
 		update_view_port(m_current_page);
 	}
 	scroll_to(0, 0);
-	queue_draw();
+	on_redraw();
 	m_sig_set_address.emit(url);
 	m_sig_update_state.emit(get_state());
 }

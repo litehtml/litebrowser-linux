@@ -336,7 +336,7 @@ public:
 
 	void redraw_area(std::shared_ptr<litebrowser::web_page> page, int x, int y, int width, int height)
 	{
-		if(page && m_draw_buffer)
+		if(m_draw_buffer)
 		{
 			// Calculate scaled position
 			int s_x = std::floor((double) (x - m_left) * m_scale_factor);
@@ -359,7 +359,10 @@ public:
 			cairo_scale(cr, m_scale_factor, m_scale_factor);
 
 			// Draw page
-			page->draw((litehtml::uint_ptr) cr, -m_left, -m_top, &pos);
+			if(page)
+			{
+				page->draw((litehtml::uint_ptr) cr, -m_left, -m_top, &pos);
+			}
 
 			cairo_destroy(cr);
 		}
