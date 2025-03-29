@@ -6,17 +6,20 @@ A simple browser based on the [litehtml](https://github.com/litehtml/litehtml) e
 
 Install dependencies:
 
- * vim-core for xxd
+### Fedora
+ ```
+ dnf install gtkmm4.0-devel libcurl-devel cairo-devel pango-devel
+ ```
 
 ## Pre-requisites on Mac
 
 Install dependencies using [Homebrew](https://brew.sh/):
 
- * [gtkmm3](https://formulae.brew.sh/formula/gtkmm3)
- * [gtk+3](https://formulae.brew.sh/formula/gtk+3)
+ * [gtkmm3](https://formulae.brew.sh/formula/gtkmm4)
+ * [gtk+3](https://formulae.brew.sh/formula/gtk4)
 
 ```
-brew install gtkmm3 gtk+3
+brew install gtkmm4 gtk4
 ```
 
 ## Common Build instructions
