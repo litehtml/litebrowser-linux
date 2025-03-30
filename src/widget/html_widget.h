@@ -21,6 +21,7 @@ public:
 	using render_func = std::function<void()>;
 	using update_state_func = std::function<void()>;
 	using on_page_loaded_func = std::function<void(uint64_t)>;
+	using on_set_caption_func = std::function<void(const std::string&)>;
 private:
 	enum func_type
 	{
@@ -28,12 +29,14 @@ private:
 		func_type_redraw,
 		func_type_render,
 		func_type_update_state,
-		func_type_on_page_loaded
+		func_type_on_page_loaded,
+		func_type_on_set_caption
 	};
 	struct queue_item
 	{
 		func_type	type;
 		uint64_t	param;
+		std::string	str_param;
 	};
 
 	Glib::Dispatcher		m_dispatcher;
@@ -41,6 +44,7 @@ private:
 	render_func				m_render_func;
 	update_state_func		m_update_state_func;
 	on_page_loaded_func		m_on_page_loaded_func;
+	on_set_caption_func		m_on_set_caption_func;
 
 	std::mutex				m_lock;
 	bool					m_disconnect = false;
@@ -79,13 +83,18 @@ public:
 		m_on_page_loaded_func = _on_page_loaded_func;
 	}
 
+	void connect_on_set_caption(on_set_caption_func _on_set_caption_func)
+	{
+		m_on_set_caption_func = _on_set_caption_func;
+	}
+
 private:
 
 	void redraw() override
 	{
 		{
 			std::lock_guard lock(m_lock);
-			m_queue.push(queue_item{func_type_redraw, 0});
+			m_queue.push(queue_item{func_type_redraw, 0, {}});
 		}
 		m_dispatcher.emit();
 	}
@@ -94,7 +103,7 @@ private:
 	{
 		{
 			std::lock_guard lock(m_lock);
-			m_queue.push(queue_item{func_type_render, 0});
+			m_queue.push(queue_item{func_type_render, 0, {}});
 		}
 		m_dispatcher.emit();
 	}
@@ -103,7 +112,7 @@ private:
 	{
 		{
 			std::lock_guard lock(m_lock);
-			m_queue.push(queue_item{func_type_update_state, 0});
+			m_queue.push(queue_item{func_type_update_state, 0, {}});
 		}
 		m_dispatcher.emit();
 	}
@@ -112,7 +121,16 @@ private:
 	{
 		{
 			std::lock_guard lock(m_lock);
-			m_queue.push(queue_item{func_type_on_page_loaded, web_page_id});
+			m_queue.push(queue_item{func_type_on_page_loaded, web_page_id, {}});
+		}
+		m_dispatcher.emit();
+	}
+
+	void on_set_caption(const std::string& caption) override
+	{
+		{
+			std::lock_guard lock(m_lock);
+			m_queue.push(queue_item{func_type_on_set_caption, 0, caption});
 		}
 		m_dispatcher.emit();
 	}
@@ -162,6 +180,12 @@ private:
 					if(m_on_page_loaded_func)
 					{
 						m_on_page_loaded_func(item.param);
+					}
+					break;
+				case func_type_on_set_caption:
+					if(m_on_set_caption_func)
+					{
+						m_on_set_caption_func(item.str_param);
 					}
 					break;
 
@@ -452,7 +476,6 @@ protected:
 	int get_render_width() override;
 	void scroll_to(int x, int y) override;
 	void get_client_rect(litehtml::position& client) const override;
-	void set_caption(const char* caption) override;
 	cairo_surface_t* load_image(const std::string& path) override;
 
 	void snapshot_vfunc(const Glib::RefPtr<Gtk::Snapshot>& snapshot) override;
@@ -466,6 +489,7 @@ protected:
 	void size_allocate_vfunc(int width, int height, int baseline) override;
 	void allocate_scrollbars(int width, int height);
 
+	void set_caption(const std::string& caption);
 	void on_vadjustment_changed();
 	void on_hadjustment_changed();
 	void on_adjustments_changed();
