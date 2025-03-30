@@ -4,19 +4,28 @@ A simple browser based on the [litehtml](https://github.com/litehtml/litehtml) e
 
 ## Pre-requisites on Linux
 
-Install dependencies:
+### Install required dependencies:
 
-### Fedora
+#### Fedora
  ```
  dnf install gtkmm4.0-devel libcurl-devel cairo-devel pango-devel
+ ```
+
+### Optional dependencies:
+
+The optional library ```libadwaita``` will add support for dark themes, High Contrast mode and some other GNOME related features.
+
+#### Fedora
+ ```
+ dnf install libadwaita-devel
  ```
 
 ## Pre-requisites on Mac
 
 Install dependencies using [Homebrew](https://brew.sh/):
 
- * [gtkmm3](https://formulae.brew.sh/formula/gtkmm4)
- * [gtk+3](https://formulae.brew.sh/formula/gtk4)
+ * [gtkmm4](https://formulae.brew.sh/formula/gtkmm4)
+ * [gtk4](https://formulae.brew.sh/formula/gtk4)
 
 ```
 brew install gtkmm4 gtk4
