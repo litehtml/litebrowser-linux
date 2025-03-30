@@ -2,16 +2,18 @@
 #ifdef FOR_TESTING
 #include "fonts.h"
 #endif
-#include <adwaita.h>
 
-int on_cmd(const Glib::RefPtr<Gio::ApplicationCommandLine> &, Glib::RefPtr<Gtk::Application> &app)
-{
-    app->activate();
-    return 0;
-}
+#ifdef LIBADWAITA_AVAILABLE
+#include <adwaita.h>
+#endif
+
 int main (int argc, char *argv[])
 {
+
+#ifdef LIBADWAITA_AVAILABLE
 	adw_init();
+#endif
+
 #ifdef FOR_TESTING
 	prepare_fonts_for_testing();
 #endif

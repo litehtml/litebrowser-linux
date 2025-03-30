@@ -19,7 +19,8 @@ set(LITEBROWSER_PATH src)
 set(LITEHTML_PATH litehtml)
 set(CONTAINER_PATH ${LITEHTML_PATH}/containers/cairo)
 
-pkg_check_modules(LB_LIBS REQUIRED gtkmm-4.0 libcurl cairo pango pangocairo libadwaita-1)
+pkg_check_modules(LB_LIBS REQUIRED gtkmm-4.0 libcurl cairo pango pangocairo)
+pkg_check_modules(LB_ADW libadwaita-1)
 
 set(SOURCE  ${LITEBROWSER_PATH}/main.cpp
 			${LITEBROWSER_PATH}/widget/html_widget.cpp
@@ -60,9 +61,14 @@ add_subdirectory(${LITEHTML_PATH})
 add_compile_options(-Wall -Wextra -Wpedantic)
 
 add_executable(${PROJECT_NAME} ${SOURCE} ${HEADERS})
-include_directories(${PROJECT_NAME} ${LITEHTML_PATH}/include ${LITEBROWSER_PATH}/webpage ${LITEBROWSER_PATH}/widget ${LB_LIBS_INCLUDE_DIRS} ${CONTAINER_PATH} litehtml-tests)
-target_link_options(${PROJECT_NAME} PRIVATE ${LB_LIBS_LDFLAGS} ${FONTCONFIG_LDFLAGS})
-target_link_libraries(${PROJECT_NAME} litehtml ${LB_LIBS_LIBRARIES} ${FONTCONFIG_LIBRARIES})
+
+include_directories(${PROJECT_NAME} ${LITEHTML_PATH}/include ${LITEBROWSER_PATH}/webpage ${LITEBROWSER_PATH}/widget ${LB_LIBS_INCLUDE_DIRS} ${LB_ADW_INCLUDE_DIRS} ${CONTAINER_PATH} litehtml-tests)
+target_link_options(${PROJECT_NAME} PRIVATE ${LB_LIBS_LDFLAGS} ${FONTCONFIG_LDFLAGS} ${LB_ADW_LDFLAGS})
+target_link_libraries(${PROJECT_NAME} litehtml ${LB_LIBS_LIBRARIES} ${LB_ADW_LIBRARIES} ${FONTCONFIG_LIBRARIES})
+
+if (LB_ADW_FOUND)
+	target_compile_definitions(${PROJECT_NAME} PUBLIC LIBADWAITA_AVAILABLE=1)
+endif ()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
 		CXX_STANDARD 17
