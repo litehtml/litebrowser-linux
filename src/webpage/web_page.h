@@ -1,6 +1,7 @@
 #ifndef LITEBROWSER_WEB_PAGE_H
 #define LITEBROWSER_WEB_PAGE_H
 
+#include <unistd.h>
 #include <sstream>
 #include "container_cairo_pango.h"
 #include "html_host.h"
