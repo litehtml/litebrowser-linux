@@ -10,6 +10,7 @@ html_widget::html_widget()
 	m_notifier->connect_render(sigc::mem_fun(*this, &html_widget::render));
 	m_notifier->connect_update_state([this]() { m_sig_update_state.emit(get_state()); });
 	m_notifier->connect_on_page_loaded(sigc::mem_fun(*this, &html_widget::on_page_loaded));
+	m_notifier->connect_on_set_caption(sigc::mem_fun(*this, &html_widget::set_caption));
 
 	set_focusable(true);
 
@@ -134,7 +135,7 @@ void html_widget::get_client_rect(litehtml::position& client) const
 	client.height = (int) (m_vadjustment->get_page_size());
 }
 
-void html_widget::set_caption(const char* caption)
+void html_widget::set_caption(const std::string& caption)
 {
 	auto root = get_root();
 	if(root)
@@ -142,7 +143,7 @@ void html_widget::set_caption(const char* caption)
 		auto window = dynamic_cast<Gtk::Window*>(root);
 		if (window)
 		{
-			window->set_title(caption);
+			window->set_title(caption.c_str());
 		};
 	}
 }

@@ -77,7 +77,7 @@ void litebrowser::web_page::import_css(litehtml::string& text, const litehtml::s
 
 void litebrowser::web_page::set_caption(const char* caption)
 {
-	m_html_host->set_caption(caption);
+	m_notify->on_set_caption(caption);
 }
 
 void litebrowser::web_page::set_base_url(const char* base_url)

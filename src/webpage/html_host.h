@@ -16,7 +16,6 @@ namespace litebrowser
 		virtual void update_cursor() = 0;
 		virtual void scroll_to(int x, int y) = 0;
 		virtual void get_client_rect(litehtml::position& client) const = 0;
-		virtual void set_caption(const char* caption) = 0;
 		virtual void redraw_boxes(const litehtml::position::vector& boxes) = 0;
 		virtual int get_render_width() = 0;
 		virtual double get_dpi() = 0;
@@ -33,6 +32,7 @@ namespace litebrowser
 		virtual void redraw() = 0;
 		virtual void render() = 0;
 		virtual void update_state() = 0;
+		virtual void on_set_caption(const std::string& caption_text) = 0;
 		virtual void on_page_loaded(uint64_t web_page_id) = 0;
 	};
 
