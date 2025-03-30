@@ -68,21 +68,7 @@ html_widget::~html_widget()
 
 double html_widget::get_dpi()
 {
-	auto display = Gdk::Display::get_default();
-	if (display)
-	{
-		auto monitors = display->get_monitors();
-		if (monitors->get_n_items() > 0)
-		{
-			auto monitor = monitors->get_typed_object<Gdk::Monitor>(0);
-			if(monitor)
-			{
-				Gdk::Rectangle rect;
-				monitor->get_geometry(rect);
-				return 10.0 * (rect.get_height() * 2.54) / monitor->get_height_mm();
-			}
-		}
-	}
+	// DPI is always 96 (default). Scaling will make things larger.
 	return 96.0;
 }
 
