@@ -14,6 +14,7 @@ enum page_state
 	page_state_downloading = 0x04,
 };
 
+/// @brief Allows perform actions in the GUI thread via notifications
 class html_widget_notifier : public litebrowser::browser_notify_interface
 {
 public:
@@ -493,6 +494,7 @@ class html_widget :		public Gtk::Widget,
 {
 	int m_rendered_width = 0;
 	int m_rendered_height = 0;
+	bool m_do_force_redraw_on_adjustment = true;
 	std::mutex m_page_mutex;
 	std::shared_ptr<litebrowser::web_page> 	m_current_page;
 	std::shared_ptr<litebrowser::web_page> 	m_next_page;
