@@ -114,13 +114,15 @@ void html_widget::snapshot_vfunc(const Glib::RefPtr<Gtk::Snapshot>& snapshot)
         return;
     }
 
-	auto allocation = get_allocation();
-	auto cr = snapshot->append_cairo(Gdk::Rectangle(0, 0, allocation.get_width(), allocation.get_height()));
-	if(m_draw_buffer.get_cairo_surface())
 	{
-		cr->scale(1.0 / m_draw_buffer.get_scale_factor(), 1.0 / m_draw_buffer.get_scale_factor());
-		cairo_set_source_surface(cr->cobj(), m_draw_buffer.get_cairo_surface(), 0, 0);
-		cr->paint();
+		auto allocation = get_allocation();
+		auto cr = snapshot->append_cairo(Gdk::Rectangle(0, 0, allocation.get_width(), allocation.get_height()));
+		if(m_draw_buffer.get_cairo_surface())
+		{
+			cr->scale(1.0 / m_draw_buffer.get_scale_factor(), 1.0 / m_draw_buffer.get_scale_factor());
+			cairo_set_source_surface(cr->cobj(), m_draw_buffer.get_cairo_surface(), 0, 0);
+			cr->paint();
+		}
 	}
 
 	snapshot_child(*m_vscrollbar, snapshot);
@@ -129,10 +131,10 @@ void html_widget::snapshot_vfunc(const Glib::RefPtr<Gtk::Snapshot>& snapshot)
 
 void html_widget::get_client_rect(litehtml::position& client) const
 {
-	client.x = (int) (m_hadjustment->get_value() - m_hadjustment->get_lower());
-	client.y = (int) (m_vadjustment->get_value() - m_vadjustment->get_lower());
-	client.width = (int) (m_hadjustment->get_page_size());
-	client.height = (int) (m_vadjustment->get_page_size());
+	client.x		= m_draw_buffer.get_left();
+	client.y		= m_draw_buffer.get_top();
+	client.width	= m_draw_buffer.get_width();
+	client.height	= m_draw_buffer.get_height();
 }
 
 void html_widget::set_caption(const std::string& caption)
@@ -214,8 +216,8 @@ void html_widget::on_button_press_event(int /* n_press */, double x, double y)
 	auto page = current_page();
 	if (page)
 	{
-		page->on_lbutton_down(	(int) (x + m_hadjustment->get_value()),
-								(int) (y + m_vadjustment->get_value()),
+		page->on_lbutton_down(	(int) (x + m_draw_buffer.get_left()),
+								(int) (y + m_draw_buffer.get_top()),
 								(int) x, (int) y);
 	}
 }
@@ -225,8 +227,8 @@ void html_widget::on_button_release_event(int /* n_press */, double x, double y)
 	auto page = current_page();
 	if(page)
 	{
-		page->on_lbutton_up((int) (x + m_hadjustment->get_value()),
-							(int) (y + m_vadjustment->get_value()),
+		page->on_lbutton_up((int) (x + m_draw_buffer.get_left()),
+							(int) (y + m_draw_buffer.get_top()),
 							(int) x, (int) y);
 	}
 }
@@ -269,8 +271,8 @@ void html_widget::on_mouse_move(double x, double y)
 	std::shared_ptr<litebrowser::web_page> page = current_page();
 	if(page)
 	{
-		page->on_mouse_over((int) (x + m_hadjustment->get_value()),
-							(int) (y + m_vadjustment->get_value()),
+		page->on_mouse_over((int) (x + m_draw_buffer.get_left()),
+							(int) (y + m_draw_buffer.get_top()),
 							(int) x, (int) y);
 	}
 }
@@ -388,7 +390,7 @@ long html_widget::render_measure(int number)
 		auto t1 = std::chrono::high_resolution_clock::now();
 		for (int i = 0; i < number; i++)
 		{
-			page->render(m_rendered_width);
+			page->render(m_draw_buffer.get_width());
 		}
 		auto t2 = std::chrono::high_resolution_clock::now();
 		return (std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1)).count();
@@ -402,16 +404,20 @@ void html_widget::size_allocate_vfunc(int width, int height, int /* baseline */)
 	std::shared_ptr<litebrowser::web_page> page = current_page();
 	if(page)
 	{
-		m_rendered_width = width;
-		page->media_changed();
-		page->render(m_rendered_width);
-		update_view_port(page);
-		m_draw_buffer.on_size_allocate(page, width, height);
-		queue_draw();
+		if(m_rendered_width != width || m_rendered_height != height)
+		{
+			m_rendered_width = width;
+			m_rendered_height = height;
+			m_draw_buffer.on_size_allocate(page, width, height);
+			page->media_changed();
+			page->render(m_rendered_width);
+			update_view_port(page);
+			m_draw_buffer.redraw(page);
+			queue_draw();
+		}
 	} else
 	{
 		m_draw_buffer.on_size_allocate(page, width, height);
-		m_rendered_width = width;
 	}
 
 }
@@ -562,7 +568,7 @@ void html_widget::redraw_boxes(const litehtml::position::vector& boxes)
 
 int html_widget::get_render_width()
 {
-	return get_width();
+	return m_draw_buffer.get_width();
 }
 
 void html_widget::on_page_loaded(uint64_t web_page_id)
@@ -647,7 +653,7 @@ void html_widget::render()
 	std::shared_ptr<litebrowser::web_page> page = current_page();
 	if(page)
 	{
-		page->render(m_rendered_width);
+		page->render(m_draw_buffer.get_width());
 		update_view_port(page);
 		m_draw_buffer.redraw(page);
 		queue_draw();
