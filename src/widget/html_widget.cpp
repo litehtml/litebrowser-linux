@@ -424,6 +424,19 @@ void html_widget::size_allocate_vfunc(int width, int height, int /* baseline */)
 
 void html_widget::allocate_scrollbars(int width, int height)
 {
+	m_do_force_redraw_on_adjustment = false;
+	m_hadjustment->set_page_size(width);
+	m_vadjustment->set_page_size(height);
+	if(m_vadjustment->get_value() > m_vadjustment->get_upper() - m_vadjustment->get_page_size())
+	{
+		m_vadjustment->set_value(m_vadjustment->get_upper() - m_vadjustment->get_page_size());
+	}
+	if(m_hadjustment->get_value() > m_hadjustment->get_upper() - m_hadjustment->get_page_size())
+	{
+		m_hadjustment->set_value(m_hadjustment->get_upper() - m_hadjustment->get_page_size());
+	}
+	m_do_force_redraw_on_adjustment = true;
+
 	int minimum = 0, natural = 0, m_baseline = 0, n_baseline = 0;
 
 	m_vscrollbar->measure(Gtk::Orientation::HORIZONTAL, -1, minimum, natural, m_baseline, n_baseline);
@@ -434,9 +447,6 @@ void html_widget::allocate_scrollbars(int width, int height)
 	m_hscrollbar->measure(Gtk::Orientation::VERTICAL, -1, minimum, natural, m_baseline, n_baseline);
 	Gtk::Allocation hscrollbar_allocation(0, height - natural, width, natural);
 	m_hscrollbar->size_allocate(hscrollbar_allocation, -1);
-
-	m_hadjustment->set_page_size(width);
-	m_vadjustment->set_page_size(height);
 }
 
 void html_widget::on_vadjustment_changed()
@@ -444,7 +454,14 @@ void html_widget::on_vadjustment_changed()
 	m_draw_buffer.on_scroll(	current_page(),
 								(int) m_hadjustment->get_value(),
 								(int) m_vadjustment->get_value());
-	force_redraw();
+
+	if(m_do_force_redraw_on_adjustment)
+	{
+		force_redraw();
+	} else
+	{
+		queue_draw();
+	}
 }
 
 void html_widget::on_hadjustment_changed()
@@ -452,7 +469,13 @@ void html_widget::on_hadjustment_changed()
 	m_draw_buffer.on_scroll(	current_page(),
 								(int) m_hadjustment->get_value(),
 								(int) m_vadjustment->get_value());
-	force_redraw();
+	if(m_do_force_redraw_on_adjustment)
+	{
+		force_redraw();
+	} else
+	{
+		queue_draw();
+	}
 }
 
 void html_widget::on_adjustments_changed()
