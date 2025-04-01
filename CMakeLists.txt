@@ -18,32 +18,33 @@ set(CMAKE_C_FLAGS_RELEASE "-O3")
 set(LITEBROWSER_PATH src)
 set(LITEHTML_PATH litehtml)
 set(CONTAINER_PATH ${LITEHTML_PATH}/containers/cairo)
+set(SUPPORT_PATH ${LITEHTML_PATH}/support)
 
 pkg_check_modules(LB_LIBS REQUIRED gtkmm-4.0 libcurl cairo pango pangocairo)
 pkg_check_modules(LB_ADW libadwaita-1)
 
 set(SOURCE  ${LITEBROWSER_PATH}/main.cpp
-			${LITEBROWSER_PATH}/widget/html_widget.cpp
 			${LITEBROWSER_PATH}/browser_wnd.cpp
-			${LITEBROWSER_PATH}/webpage/web_history.cpp
-			${LITEBROWSER_PATH}/webpage/draw_buffer.cpp
-			${LITEBROWSER_PATH}/webpage/http_request.cpp
-			${LITEBROWSER_PATH}/webpage/web_page.cpp
-			${LITEBROWSER_PATH}/webpage/http_requests_pool.cpp
+			${SUPPORT_PATH}/gtkmm4/html_widget.cpp
+			${SUPPORT_PATH}/webpage/web_history.cpp
+			${SUPPORT_PATH}/webpage/draw_buffer.cpp
+			${SUPPORT_PATH}/webpage/http_request.cpp
+			${SUPPORT_PATH}/webpage/web_page.cpp
+			${SUPPORT_PATH}/webpage/http_requests_pool.cpp
 			${CONTAINER_PATH}/container_cairo.cpp
 			${CONTAINER_PATH}/cairo_borders.cpp
 			${CONTAINER_PATH}/container_cairo_pango.cpp
 	)
 
 set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
-			${LITEBROWSER_PATH}/widget/html_widget.h
-			${LITEBROWSER_PATH}/webpage/web_history.h
-			${LITEBROWSER_PATH}/webpage/http_request.h
-			${LITEBROWSER_PATH}/webpage/web_page.h
-			${LITEBROWSER_PATH}/webpage/html_host.h
-			${LITEBROWSER_PATH}/webpage/http_requests_pool.h
-			${LITEBROWSER_PATH}/webpage/draw_buffer.h
 			${LITEBROWSER_PATH}/html_dumper.h
+			${SUPPORT_PATH}/gtkmm4/html_widget.h
+			${SUPPORT_PATH}/webpage/web_history.h
+			${SUPPORT_PATH}/webpage/http_request.h
+			${SUPPORT_PATH}/webpage/web_page.h
+			${SUPPORT_PATH}/webpage/html_host.h
+			${SUPPORT_PATH}/webpage/http_requests_pool.h
+			${SUPPORT_PATH}/webpage/draw_buffer.h
 			${CONTAINER_PATH}/container_cairo.h
 			${CONTAINER_PATH}/cairo_borders.h
 			${CONTAINER_PATH}/container_cairo_pango.h
@@ -64,7 +65,7 @@ add_compile_options(-Wall -Wextra -Wpedantic)
 
 add_executable(${PROJECT_NAME} ${SOURCE} ${HEADERS})
 
-include_directories(${PROJECT_NAME} ${LITEHTML_PATH}/include ${LITEBROWSER_PATH}/webpage ${LITEBROWSER_PATH}/widget ${LB_LIBS_INCLUDE_DIRS} ${LB_ADW_INCLUDE_DIRS} ${CONTAINER_PATH} litehtml-tests)
+include_directories(${PROJECT_NAME} ${LITEHTML_PATH}/include ${SUPPORT_PATH}/webpage ${SUPPORT_PATH}/gtkmm4 ${LB_LIBS_INCLUDE_DIRS} ${LB_ADW_INCLUDE_DIRS} ${CONTAINER_PATH} litehtml-tests)
 target_link_options(${PROJECT_NAME} PRIVATE ${LB_LIBS_LDFLAGS} ${FONTCONFIG_LDFLAGS} ${LB_ADW_LDFLAGS})
 target_link_libraries(${PROJECT_NAME} litehtml ${LB_LIBS_LIBRARIES} ${LB_ADW_LIBRARIES} ${FONTCONFIG_LIBRARIES})
 
