@@ -26,6 +26,7 @@ set(SOURCE  ${LITEBROWSER_PATH}/main.cpp
 			${LITEBROWSER_PATH}/widget/html_widget.cpp
 			${LITEBROWSER_PATH}/browser_wnd.cpp
 			${LITEBROWSER_PATH}/webpage/web_history.cpp
+			${LITEBROWSER_PATH}/webpage/draw_buffer.cpp
 			${LITEBROWSER_PATH}/webpage/http_request.cpp
 			${LITEBROWSER_PATH}/webpage/web_page.cpp
 			${LITEBROWSER_PATH}/webpage/http_requests_pool.cpp
@@ -41,6 +42,7 @@ set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
 			${LITEBROWSER_PATH}/webpage/web_page.h
 			${LITEBROWSER_PATH}/webpage/html_host.h
 			${LITEBROWSER_PATH}/webpage/http_requests_pool.h
+			${LITEBROWSER_PATH}/webpage/draw_buffer.h
 			${LITEBROWSER_PATH}/html_dumper.h
 			${CONTAINER_PATH}/container_cairo.h
 			${CONTAINER_PATH}/cairo_borders.h
