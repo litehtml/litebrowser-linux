@@ -305,6 +305,14 @@ bool html_widget::on_key_pressed(guint keyval, guint /* keycode */, Gdk::Modifie
 	case GDK_KEY_End:
 		m_vadjustment->set_value(m_vadjustment->get_upper());
 		break;
+	case GDK_KEY_KP_Left:
+	case GDK_KEY_Left:
+		m_hadjustment->set_value(m_hadjustment->get_value() - m_hadjustment->get_step_increment());
+		break;
+	case GDK_KEY_KP_Right:
+	case GDK_KEY_Right:
+		m_hadjustment->set_value(m_hadjustment->get_value() + m_hadjustment->get_step_increment());
+		break;
 
 	default:
 		break;
