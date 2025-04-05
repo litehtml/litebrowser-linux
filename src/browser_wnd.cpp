@@ -195,18 +195,6 @@ void browser_window::on_go_clicked()
 	m_html.grab_focus();
 }
 
-bool browser_window::on_address_key_press(guint keyval, guint /*keycode*/, Gdk::ModifierType /*state*/)
-{
-	if(keyval == GDK_KEY_Return)
-	{
-		m_address_bar.select_region(0, -1);
-		on_go_clicked();
-		return true;
-	}
-
-	return false;
-}
-
 void browser_window::on_forward_clicked()
 {
 	m_html.go_forward();

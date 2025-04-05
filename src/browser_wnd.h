@@ -25,7 +25,6 @@ private:
     void on_back_clicked();
     void on_render_measure(int number);
     void on_draw_measure(int number);
-    bool on_address_key_press(guint keyval, guint /*keycode*/, Gdk::ModifierType /*state*/);
     void on_dump();
 
 protected:
