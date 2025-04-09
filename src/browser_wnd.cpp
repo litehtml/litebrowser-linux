@@ -6,20 +6,19 @@
 
 struct
 {
-    const char* name;
-    const char* url;
-} g_bookmarks[] =
-        {
-				{"Alexei Navalny (Wiki)", "https://en.wikipedia.org/wiki/Alexei_Navalny?useskin=vector"},
-                {"litehtml Web Site", "http://www.litehtml.com/"},
-                {"True Launch Bar", "http://www.truelaunchbar.com/"},
-                {"Tordex", "http://www.tordex.com/"},
-                {"Obama (Wiki)", "https://en.wikipedia.org/wiki/Barack_Obama?useskin=vector"},
-                {"Elizabeth II (Wiki)", "https://en.wikipedia.org/wiki/Elizabeth_II?useskin=vector"},
-				{"std::vector", "https://en.cppreference.com/w/cpp/container/vector"},
-				{"BinaryTides", "https://www.binarytides.com/"},
-				{"Ubuntu Forums", "https://ubuntuforums.org/"},
-        };
+	const char* name;
+	const char* url;
+} g_bookmarks[] = {
+	{"Alexei Navalny (Wiki)", "https://en.wikipedia.org/wiki/Alexei_Navalny?useskin=vector"},
+	{"litehtml Web Site", "http://www.litehtml.com/"},
+	{"True Launch Bar", "http://www.truelaunchbar.com/"},
+	{"Tordex", "http://www.tordex.com/"},
+	{"Obama (Wiki)", "https://en.wikipedia.org/wiki/Barack_Obama?useskin=vector"},
+	{"Elizabeth II (Wiki)", "https://en.wikipedia.org/wiki/Elizabeth_II?useskin=vector"},
+	{"std::vector", "https://en.cppreference.com/w/cpp/container/vector"},
+	{"BinaryTides", "https://www.binarytides.com/"},
+	{"Ubuntu Forums", "https://ubuntuforums.org/"},
+};
 
 static inline void mk_button(Gtk::Button& btn, const std::string& label_text, const std::string& icon_name)
 {
@@ -28,37 +27,37 @@ static inline void mk_button(Gtk::Button& btn, const std::string& label_text, co
 	btn.set_tooltip_text(label_text);
 }
 
-browser_window::browser_window(const Glib::RefPtr<Gio::Application>& app, const std::string& url) :
-		m_prev_state(0)
+browser_window::browser_window(Gio::Application* app, const std::string& url)
 {
-	set_child(m_vbox);
+	auto main_box = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL);
 
+	set_child(*main_box);
 	set_titlebar(m_header);
 
 	m_header.show();
 
 	m_header.set_show_title_buttons(false);
 
-	auto title_box	= Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL);
-	auto left_box	= Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 5);
-	auto right_box	= Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 5);
+	auto title_box = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL);
+	auto left_box  = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 5);
+	auto right_box = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 5);
 
 	left_box->append(m_back_button);
 	mk_button(m_back_button, "Go Back", "go-previous-symbolic");
-    m_back_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_back_clicked) );
+	m_back_button.signal_clicked().connect(sigc::mem_fun(*this, &browser_window::on_back_clicked));
 
 	left_box->append(m_forward_button);
 	mk_button(m_forward_button, "Go Forward", "go-next-symbolic");
 	m_forward_button.set_margin_end(10);
-    m_forward_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_forward_clicked) );
+	m_forward_button.signal_clicked().connect(sigc::mem_fun(*this, &browser_window::on_forward_clicked));
 
 	left_box->append(m_stop_reload_button);
 	mk_button(m_stop_reload_button, "Reload Page", "view-refresh-symbolic");
-	m_stop_reload_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_stop_reload_clicked) );
+	m_stop_reload_button.signal_clicked().connect(sigc::mem_fun(*this, &browser_window::on_stop_reload_clicked));
 
 	left_box->append(m_home_button);
 	mk_button(m_home_button, "Go Home", "go-home-symbolic");
-	m_home_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_home_clicked) );
+	m_home_button.signal_clicked().connect(sigc::mem_fun(*this, &browser_window::on_home_clicked));
 
 	left_box->set_hexpand(false);
 	title_box->append(*left_box);
@@ -72,11 +71,10 @@ browser_window::browser_window(const Glib::RefPtr<Gio::Application>& app, const 
 	m_address_bar.property_primary_icon_name().set_value("insert-link-symbolic");
 	m_address_bar.set_text("http://www.litehtml.com/");
 
-
 	right_box->append(m_go_button);
 	mk_button(m_go_button, "Go", "media-playback-start-symbolic");
 	m_go_button.set_margin_end(20);
-	m_go_button.signal_clicked().connect( sigc::mem_fun(*this, &browser_window::on_go_clicked) );
+	m_go_button.signal_clicked().connect(sigc::mem_fun(*this, &browser_window::on_go_clicked));
 
 	// Creating bookmarks popover
 	auto menu_model = Gio::Menu::create();
@@ -92,7 +90,7 @@ browser_window::browser_window(const Glib::RefPtr<Gio::Application>& app, const 
 
 	auto action = Gio::SimpleAction::create("open_url", Glib::VariantType("s"));
 	action->signal_activate().connect([this](const Glib::VariantBase& parameter) {
-        auto value = parameter.get_dynamic<std::string>();
+		auto value = parameter.get_dynamic<std::string>();
 		m_html.open_url(value);
 		m_bookmarks_popover.popdown();
 	});
@@ -104,13 +102,13 @@ browser_window::browser_window(const Glib::RefPtr<Gio::Application>& app, const 
 
 	right_box->append(m_bookmarks_button);
 	mk_button(m_bookmarks_button, "Bookmarks", "user-bookmarks-symbolic");
-	m_bookmarks_button.signal_clicked().connect( [this]() { m_bookmarks_popover.popup(); } );
+	m_bookmarks_button.signal_clicked().connect([this]() { m_bookmarks_popover.popup(); });
 
 	// Creating tools popover
-	menu_model = Gio::Menu::create();
+	menu_model			= Gio::Menu::create();
 	auto section_render = Gio::Menu::create();
-	auto section_draw = Gio::Menu::create();
-	auto section_other = Gio::Menu::create();
+	auto section_draw	= Gio::Menu::create();
+	auto section_other	= Gio::Menu::create();
 
 	section_render->append("Single Render", "app.test_render(1)");
 	section_render->append("Render 10 Times", "app.test_render(10)");
@@ -130,7 +128,7 @@ browser_window::browser_window(const Glib::RefPtr<Gio::Application>& app, const 
 
 	action = Gio::SimpleAction::create("test_render", Glib::VariantType("i"));
 	action->signal_activate().connect([this](const Glib::VariantBase& parameter) {
-        auto value = parameter.get_dynamic<int>();
+		auto value = parameter.get_dynamic<int>();
 		on_render_measure(value);
 		m_bookmarks_popover.popdown();
 	});
@@ -138,7 +136,7 @@ browser_window::browser_window(const Glib::RefPtr<Gio::Application>& app, const 
 
 	action = Gio::SimpleAction::create("test_draw", Glib::VariantType("i"));
 	action->signal_activate().connect([this](const Glib::VariantBase& parameter) {
-        auto value = parameter.get_dynamic<int>();
+		auto value = parameter.get_dynamic<int>();
 		on_draw_measure(value);
 		m_bookmarks_popover.popdown();
 	});
@@ -153,7 +151,7 @@ browser_window::browser_window(const Glib::RefPtr<Gio::Application>& app, const 
 
 	right_box->append(m_tools_button);
 	mk_button(m_tools_button, "Tools", "preferences-system-symbolic");
-	m_tools_button.signal_clicked().connect( [this]() { m_tools_popover.popup(); } );
+	m_tools_button.signal_clicked().connect([this]() { m_tools_popover.popup(); });
 
 	auto win_ctls = Gtk::make_managed<Gtk::WindowControls>(Gtk::PackType::END);
 	right_box->append(*win_ctls);
@@ -165,21 +163,18 @@ browser_window::browser_window(const Glib::RefPtr<Gio::Application>& app, const 
 	m_header.set_title_widget(*title_box);
 	set_titlebar(m_header);
 
-    m_vbox.append(m_html);
+	main_box->append(m_html);
 	m_html.set_expand(true);
-	m_html.signal_set_address().connect( sigc::mem_fun(*this, &browser_window::set_address) );
-	m_html.signal_update_state().connect( sigc::mem_fun(*this, &browser_window::update_buttons) );
+	m_html.signal_set_address().connect(sigc::mem_fun(*this, &browser_window::set_address));
+	m_html.signal_update_state().connect(sigc::mem_fun(*this, &browser_window::update_buttons));
 
 	signal_close_request().connect(sigc::mem_fun(m_html, &html_widget::on_close), false);
 
-    set_default_size(1280, 720);
+	set_default_size(1280, 720);
 
-	if(!url.empty())
-	{
-		m_html.open_url(url);
-	}
+	if(!url.empty()) { m_html.open_url(url); }
 
-    update_buttons(0);
+	update_buttons(0);
 }
 
 browser_window::~browser_window()
@@ -219,7 +214,7 @@ void browser_window::update_buttons(uint32_t)
 	}
 	if((m_prev_state & page_state_downloading) != (state & page_state_downloading))
 	{
-		if (state & page_state_downloading)
+		if(state & page_state_downloading)
 		{
 			m_stop_reload_button.set_image_from_icon_name("process-stop-symbolic");
 		} else
@@ -232,11 +227,11 @@ void browser_window::update_buttons(uint32_t)
 
 void browser_window::on_render_measure(int number)
 {
-    std::ostringstream message;
+	std::ostringstream message;
 
-    long time = m_html.render_measure(number);
+	long			   time = m_html.render_measure(number);
 
-    message << time << " ms for " << number << " times rendering";
+	message << time << " ms for " << number << " times rendering";
 
 	auto dialog = Gtk::AlertDialog::create();
 	dialog->set_message(message.str());
@@ -247,11 +242,11 @@ void browser_window::on_render_measure(int number)
 
 void browser_window::on_draw_measure(int number)
 {
-    std::ostringstream message;
+	std::ostringstream message;
 
-    long time = m_html.draw_measure(number);
+	long			   time = m_html.draw_measure(number);
 
-    message << time << " ms for " << number << " times measure";
+	message << time << " ms for " << number << " times measure";
 
 	auto dialog = Gtk::AlertDialog::create();
 	dialog->set_message(message.str());
@@ -263,7 +258,7 @@ void browser_window::on_draw_measure(int number)
 void browser_window::on_dump()
 {
 	html_dumper cout("/tmp/litehtml-dump.txt");
-    m_html.dump(cout);
+	m_html.dump(cout);
 	auto dialog = Gtk::AlertDialog::create();
 	dialog->set_message("File is saved");
 	dialog->set_detail("The parsed HTML tree was saved into he file: /tmp/litehtml-dump.txt");
