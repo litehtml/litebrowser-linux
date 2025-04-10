@@ -1,9 +1,7 @@
 #pragma once
 
 #include "html_widget.h"
-#include <vector>
 #include <string>
-#include "web_history.h"
 
 class browser_window : public Gtk::Window
 {
