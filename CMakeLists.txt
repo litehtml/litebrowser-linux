@@ -34,6 +34,7 @@ set(SOURCE  ${LITEBROWSER_PATH}/main.cpp
 			${CONTAINER_PATH}/container_cairo.cpp
 			${CONTAINER_PATH}/cairo_borders.cpp
 			${CONTAINER_PATH}/container_cairo_pango.cpp
+			${CONTAINER_PATH}/conic_gradient.cpp
 	)
 
 set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
@@ -49,6 +50,7 @@ set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
 			${CONTAINER_PATH}/cairo_borders.h
 			${CONTAINER_PATH}/container_cairo_pango.h
 			${CONTAINER_PATH}/cairo_images_cache.h
+			${CONTAINER_PATH}/conic_gradient.h
 		)
 
 if (FOR_TESTING)
