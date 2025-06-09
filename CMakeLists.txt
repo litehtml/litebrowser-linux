@@ -27,10 +27,10 @@ set(SOURCE  ${LITEBROWSER_PATH}/main.cpp
 			${LITEBROWSER_PATH}/browser_wnd.cpp
 			${SUPPORT_PATH}/gtkmm4/html_widget.cpp
 			${SUPPORT_PATH}/webpage/web_history.cpp
-			${SUPPORT_PATH}/webpage/draw_buffer.cpp
 			${SUPPORT_PATH}/webpage/http_request.cpp
 			${SUPPORT_PATH}/webpage/web_page.cpp
 			${SUPPORT_PATH}/webpage/http_requests_pool.cpp
+			${SUPPORT_PATH}/draw_buffer/draw_buffer.cpp
 			${CONTAINER_PATH}/container_cairo.cpp
 			${CONTAINER_PATH}/cairo_borders.cpp
 			${CONTAINER_PATH}/container_cairo_pango.cpp
@@ -45,7 +45,7 @@ set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
 			${SUPPORT_PATH}/webpage/web_page.h
 			${SUPPORT_PATH}/webpage/html_host.h
 			${SUPPORT_PATH}/webpage/http_requests_pool.h
-			${SUPPORT_PATH}/webpage/draw_buffer.h
+			${SUPPORT_PATH}/draw_buffer/draw_buffer.h
 			${CONTAINER_PATH}/container_cairo.h
 			${CONTAINER_PATH}/cairo_borders.h
 			${CONTAINER_PATH}/container_cairo_pango.h
@@ -67,7 +67,7 @@ add_compile_options(-Wall -Wextra -Wpedantic)
 
 add_executable(${PROJECT_NAME} ${SOURCE} ${HEADERS})
 
-include_directories(${PROJECT_NAME} ${LITEHTML_PATH}/include ${SUPPORT_PATH}/webpage ${SUPPORT_PATH}/gtkmm4 ${LB_LIBS_INCLUDE_DIRS} ${LB_ADW_INCLUDE_DIRS} ${CONTAINER_PATH} litehtml-tests)
+include_directories(${PROJECT_NAME} ${LITEHTML_PATH}/include ${SUPPORT_PATH}/webpage ${SUPPORT_PATH}/draw_buffer ${SUPPORT_PATH}/gtkmm4 ${LB_LIBS_INCLUDE_DIRS} ${LB_ADW_INCLUDE_DIRS} ${CONTAINER_PATH} litehtml-tests)
 target_link_options(${PROJECT_NAME} PRIVATE ${LB_LIBS_LDFLAGS} ${FONTCONFIG_LDFLAGS} ${LB_ADW_LDFLAGS})
 target_link_libraries(${PROJECT_NAME} litehtml ${LB_LIBS_LIBRARIES} ${LB_ADW_LIBRARIES} ${FONTCONFIG_LIBRARIES})
 
