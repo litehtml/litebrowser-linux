@@ -21,6 +21,7 @@ class browser_window : public Gtk::Window
 	void on_render_measure(int number);
 	void on_draw_measure(int number);
 	void on_dump();
+	void on_test_append_children_from_string(bool replace_existing);
 
   protected:
 	uint32_t							m_prev_state = 0;

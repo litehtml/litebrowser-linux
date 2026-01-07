@@ -116,6 +116,8 @@ browser_window::browser_window(Gio::Application* app, const std::string& url)
 	section_draw->append("Single Draw", "app.test_draw(1)");
 	section_draw->append("Draw 10 Times", "app.test_draw(10)");
 	section_draw->append("Draw 100 Times", "app.test_draw(100)");
+	section_other->append("Append Children from String", "app.append_children(0)");
+	section_other->append("Replace Children from String", "app.append_children(1)");
 	section_other->append("Dump parsed HTML", "app.dump");
 
 	menu_model->append_section(section_render);
@@ -145,6 +147,14 @@ browser_window::browser_window(Gio::Application* app, const std::string& url)
 	action = Gio::SimpleAction::create("dump");
 	action->signal_activate().connect([this](const Glib::VariantBase& /* parameter */) {
 		on_dump();
+		m_bookmarks_popover.popdown();
+	});
+	app->add_action(action);
+
+	action = Gio::SimpleAction::create("append_children", Glib::VariantType("i"));
+	action->signal_activate().connect([this](const Glib::VariantBase& parameter) {
+		auto value = parameter.get_dynamic<int>();
+		on_test_append_children_from_string(value == 1);
 		m_bookmarks_popover.popdown();
 	});
 	app->add_action(action);
@@ -227,9 +237,18 @@ void browser_window::update_buttons(uint32_t)
 
 void browser_window::on_render_measure(int number)
 {
-	std::ostringstream message;
+	long time = 0;
+	m_html.run_with_document([number, this, &time](const std::shared_ptr<litehtml::document>& doc) {
+		auto t1 = std::chrono::high_resolution_clock::now();
+		for (int i = 0; i < number; i++)
+		{
+			doc->render(m_html.get_render_width());
+		}
+		auto t2 = std::chrono::high_resolution_clock::now();
+		time = (std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1)).count();
+	});
 
-	long			   time = m_html.render_measure(number);
+	std::ostringstream message;
 
 	message << time << " ms for " << number << " times rendering";
 
@@ -242,10 +261,51 @@ void browser_window::on_render_measure(int number)
 
 void browser_window::on_draw_measure(int number)
 {
+	long time = 0;
+	m_html.run_with_document([number, this, &time](const std::shared_ptr<litehtml::document>& doc) {
+		litehtml::position view_port;
+		m_html.get_viewport(view_port);
+
+		int width = view_port.width;
+		int height = view_port.height;
+
+		int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, width);
+		auto image = (unsigned char *) g_malloc(stride * height);
+
+		cairo_surface_t *surface = cairo_image_surface_create_for_data(image, CAIRO_FORMAT_ARGB32, width, height,
+																	   stride);
+		cairo_t *cr = cairo_create(surface);
+
+		litehtml::position pos;
+		pos.width = width;
+		pos.height = height;
+		pos.x = 0;
+		pos.y = 0;
+
+		int x = view_port.x;
+		int y = view_port.y;
+
+		cairo_rectangle(cr, 0, 0, width, height);
+		cairo_set_source_rgb(cr, 1, 1, 1);
+		cairo_paint(cr);
+		doc->draw((litehtml::uint_ptr) cr, -x, -y, &pos);
+		cairo_surface_write_to_png(surface, "/tmp/litebrowser.png");
+
+		auto t1 = std::chrono::high_resolution_clock::now();
+		for (int i = 0; i < number; i++)
+		{
+			doc->draw((litehtml::uint_ptr) cr, -x, -y, &pos);
+		}
+		auto t2 = std::chrono::high_resolution_clock::now();
+
+		cairo_destroy(cr);
+		cairo_surface_destroy(surface);
+		g_free(image);
+
+		time = (std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1)).count();
+	});
+
 	std::ostringstream message;
-
-	long			   time = m_html.draw_measure(number);
-
 	message << time << " ms for " << number << " times measure";
 
 	auto dialog = Gtk::AlertDialog::create();
@@ -258,7 +318,9 @@ void browser_window::on_draw_measure(int number)
 void browser_window::on_dump()
 {
 	html_dumper cout("/tmp/litehtml-dump.txt");
-	m_html.dump(cout);
+	m_html.run_with_document([&cout](const std::shared_ptr<litehtml::document>& doc) {
+		doc->dump(cout);
+	});
 	auto dialog = Gtk::AlertDialog::create();
 	dialog->set_message("File is saved");
 	dialog->set_detail("The parsed HTML tree was saved into he file: /tmp/litehtml-dump.txt");
@@ -282,4 +344,13 @@ void browser_window::on_stop_reload_clicked()
 void browser_window::on_home_clicked()
 {
 	m_html.open_url("http://www.litehtml.com/");
+}
+
+void browser_window::on_test_append_children_from_string(bool replace_existing)
+{
+	m_html.run_with_document([replace_existing](const std::shared_ptr<litehtml::document>& doc) {
+		auto el = doc->root()->select_one("body");
+		doc->append_children_from_string(*el, "<h1>Testing append_children_from_string</h1><p>This paragraph was added using append_children_from_string method of document class.</p>", replace_existing);
+	});
+	m_html.render();
 }
