@@ -4,60 +4,58 @@
 #include <litehtml.h>
 #include <fstream>
 
-#define BUFF_SIZE    (10 * 1024)
+#define BUFF_SIZE (10 * 1024)
 
 class html_dumper : public litehtml::dumper
 {
-	std::ofstream m_cout;
-	int indent;
-	std::list<std::tuple<int, std::string>> m_node_text;
-private:
-	void print_indent(int size)
-	{
-		m_cout << litehtml::string(size, '\t');
-	}
+    std::ofstream                           m_cout;
+    int                                     indent;
+    std::list<std::tuple<int, std::string>> m_node_text;
 
-public:
-	explicit html_dumper(const litehtml::string& file_name) : m_cout(file_name), indent(0)
-	{
+  private:
+    void print_indent(int size)
+    {
+        m_cout << std::string(size, '\t');
+    }
 
-	}
+  public:
+    explicit html_dumper(const std::string& file_name) :
+        m_cout(file_name),
+        indent(0)
+    {
+    }
 
-	void begin_node(const litehtml::string &descr) override
-	{
-		m_node_text.emplace_back(indent, "#" + descr);
-		indent++;
-	}
+    void begin_node(const std::string& descr) override
+    {
+        m_node_text.emplace_back(indent, "#" + descr);
+        indent++;
+    }
 
-	void end_node() override
-	{
-		indent--;
-	}
+    void end_node() override
+    {
+        indent--;
+    }
 
-	void begin_attrs_group(const litehtml::string &/*descr*/) override
-	{
-	}
+    void begin_attrs_group(const std::string& /*descr*/) override {}
 
-	void end_attrs_group() override
-	{
-	}
+    void end_attrs_group() override {}
 
-	void add_attr(const litehtml::string &name, const litehtml::string &value) override
-	{
-		if(name == "display" || name == "float")
-		{
-			std::get<1>(m_node_text.back()) += " " + name + "[" + value + "]";
-		}
-	}
+    void add_attr(const std::string& name, const std::string& value) override
+    {
+        if(name == "display" || name == "float")
+        {
+            std::get<1>(m_node_text.back()) += " " + name + "[" + value + "]";
+        }
+    }
 
-	void print()
-	{
-		for(const auto& data : m_node_text)
-		{
-			print_indent(std::get<0>(data));
-			m_cout << std::get<1>(data) << std::endl;
-		}
-	}
+    void print()
+    {
+        for(const auto& data : m_node_text)
+        {
+            print_indent(std::get<0>(data));
+            m_cout << std::get<1>(data) << std::endl;
+        }
+    }
 };
 
-#endif //LITEBROWSER_HTML_DUMPER_H
+#endif // LITEBROWSER_HTML_DUMPER_H
