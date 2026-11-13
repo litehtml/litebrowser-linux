@@ -17,7 +17,7 @@ struct
     {"Elizabeth II (Wiki)",   "https://en.wikipedia.org/wiki/Elizabeth_II?useskin=vector"  },
     {"std::vector",           "https://en.cppreference.com/w/cpp/container/vector"         },
     {"BinaryTides",           "https://www.binarytides.com/"                               },
-    {"Ubuntu Forums",         "https://ubuntuforums.org/"                                  },
+    {"CSS Box Sizing",        "https://www.w3.org/TR/css-sizing-3/"                        },
 };
 
 static inline void mk_button(Gtk::Button& btn, const std::string& label_text, const std::string& icon_name)
