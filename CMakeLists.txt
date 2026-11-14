@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.20)
 
 project(litebrowser CXX)
 
@@ -17,40 +17,15 @@ set(CMAKE_C_FLAGS_RELEASE "-O3")
 
 set(LITEBROWSER_PATH src)
 set(LITEHTML_PATH litehtml)
-set(CONTAINER_PATH ${LITEHTML_PATH}/containers/cairo)
-set(SUPPORT_PATH ${LITEHTML_PATH}/support)
 
-pkg_check_modules(LB_LIBS REQUIRED gtkmm-4.0 libcurl cairo pango pangocairo)
 pkg_check_modules(LB_ADW libadwaita-1)
 
 set(SOURCE  ${LITEBROWSER_PATH}/main.cpp
 			${LITEBROWSER_PATH}/browser_wnd.cpp
-			${SUPPORT_PATH}/gtkmm4/html_widget.cpp
-			${SUPPORT_PATH}/webpage/web_history.cpp
-			${SUPPORT_PATH}/webpage/http_request.cpp
-			${SUPPORT_PATH}/webpage/web_page.cpp
-			${SUPPORT_PATH}/webpage/http_requests_pool.cpp
-			${SUPPORT_PATH}/draw_buffer/draw_buffer.cpp
-			${CONTAINER_PATH}/container_cairo.cpp
-			${CONTAINER_PATH}/cairo_borders.cpp
-			${CONTAINER_PATH}/container_cairo_pango.cpp
-			${CONTAINER_PATH}/conic_gradient.cpp
 	)
 
 set(HEADERS ${LITEBROWSER_PATH}/browser_wnd.h
 			${LITEBROWSER_PATH}/html_dumper.h
-			${SUPPORT_PATH}/gtkmm4/html_widget.h
-			${SUPPORT_PATH}/webpage/web_history.h
-			${SUPPORT_PATH}/webpage/http_request.h
-			${SUPPORT_PATH}/webpage/web_page.h
-			${SUPPORT_PATH}/webpage/html_host.h
-			${SUPPORT_PATH}/webpage/http_requests_pool.h
-			${SUPPORT_PATH}/draw_buffer/draw_buffer.h
-			${CONTAINER_PATH}/container_cairo.h
-			${CONTAINER_PATH}/cairo_borders.h
-			${CONTAINER_PATH}/container_cairo_pango.h
-			${CONTAINER_PATH}/cairo_images_cache.h
-			${CONTAINER_PATH}/conic_gradient.h
 		)
 
 if (FOR_TESTING)
@@ -60,6 +35,8 @@ if (FOR_TESTING)
 	add_compile_options(-DFOR_TESTING)
 endif ()
 
+set(LITEHTML_BUILD_GTKMM4 ON CACHE BOOL "build litehtml_gtkmm4 library (requires gtkmm-4.0)" FORCE)
+set(LITEHTML_BUILD_RENDER2PNG ON CACHE BOOL "build litehtml_render2png library (requires gtk4, gdk-pixbuf-2.0, fontconfig)")
 add_subdirectory(${LITEHTML_PATH})
 
 # additional warnings
@@ -70,9 +47,9 @@ endif()
 
 add_executable(${PROJECT_NAME} ${SOURCE} ${HEADERS})
 
-include_directories(${PROJECT_NAME} ${LITEHTML_PATH}/include ${SUPPORT_PATH}/webpage ${SUPPORT_PATH}/draw_buffer ${SUPPORT_PATH}/gtkmm4 ${LB_LIBS_INCLUDE_DIRS} ${LB_ADW_INCLUDE_DIRS} ${CONTAINER_PATH} litehtml-tests)
-target_link_options(${PROJECT_NAME} PRIVATE ${LB_LIBS_LDFLAGS} ${FONTCONFIG_LDFLAGS} ${LB_ADW_LDFLAGS})
-target_link_libraries(${PROJECT_NAME} litehtml ${LB_LIBS_LIBRARIES} ${LB_ADW_LIBRARIES} ${FONTCONFIG_LIBRARIES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${LB_ADW_INCLUDE_DIRS} ${FONTCONFIG_INCLUDE_DIRS} litehtml-tests)
+target_link_options(${PROJECT_NAME} PRIVATE ${FONTCONFIG_LDFLAGS} ${LB_ADW_LDFLAGS})
+target_link_libraries(${PROJECT_NAME} litehtml_gtkmm4 ${LB_ADW_LIBRARIES} ${FONTCONFIG_LIBRARIES})
 
 if (LB_ADW_FOUND)
 	target_compile_definitions(${PROJECT_NAME} PUBLIC LIBADWAITA_AVAILABLE=1)

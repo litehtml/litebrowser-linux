@@ -9,15 +9,16 @@ struct
     const char* name;
     const char* url;
 } g_bookmarks[] = {
-    {"Alexei Navalny (Wiki)", "https://en.wikipedia.org/wiki/Alexei_Navalny?useskin=vector"},
-    {"litehtml Web Site",     "http://www.litehtml.com/"                                   },
-    {"True Launch Bar",       "http://www.truelaunchbar.com/"                              },
-    {"Tordex",                "http://www.tordex.com/"                                     },
-    {"Obama (Wiki)",          "https://en.wikipedia.org/wiki/Barack_Obama?useskin=vector"  },
-    {"Elizabeth II (Wiki)",   "https://en.wikipedia.org/wiki/Elizabeth_II?useskin=vector"  },
-    {"std::vector",           "https://en.cppreference.com/w/cpp/container/vector"         },
-    {"BinaryTides",           "https://www.binarytides.com/"                               },
-    {"CSS Box Sizing",        "https://www.w3.org/TR/css-sizing-3/"                        },
+    {"litehtml GitHub",                  "https://github.com/litehtml/litehtml"                     },
+    {"litehtml Web Site",                "http://www.litehtml.com/"                                 },
+    {"CSS Box Sizing",                   "https://www.w3.org/TR/css-sizing-3/"                      },
+    {"std::vector",                      "https://en.cppreference.com/w/cpp/container/vector"       },
+    {"Harvard University (Modern Wiki)", "https://en.wikipedia.org/wiki/Harvard_University"         },
+    {"Tordex",                           "http://www.tordex.com/"                                   },
+    {"True Launch Bar",                  "http://www.truelaunchbar.com/"                            },
+    {"Obama (Wiki)",                     "https://en.wikipedia.org/wiki/Barack_Obama?useskin=vector"},
+    {"Elizabeth II (Wiki)",              "https://en.wikipedia.org/wiki/Elizabeth_II?useskin=vector"},
+    {"BinaryTides",                      "https://www.binarytides.com/"                             },
 };
 
 static inline void mk_button(Gtk::Button& btn, const std::string& label_text, const std::string& icon_name)

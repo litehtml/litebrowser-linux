@@ -2,6 +2,8 @@
 
 A simple browser based on the [litehtml](https://github.com/litehtml/litehtml) engine for Linux and Mac. See [litebrowser](https://github.com/litehtml/litebrowser) for the Windows version.
 
+Building requires CMake 3.20 or newer.
+
 ## Pre-requisites on Linux
 
 ### Install required dependencies:
