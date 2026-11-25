@@ -22,7 +22,7 @@ class browser_app : public Gtk::Application
   protected:
     void on_activate() override
     {
-        auto window = new browser_window(this, m_url);
+        auto window = Gtk::make_managed<browser_window>(this, m_url);
         add_window(*window);
         window->present();
     }
@@ -35,6 +35,7 @@ class browser_app : public Gtk::Application
         {
             m_url = args[1];
         }
+        g_strfreev(args);
 
         activate();
 
